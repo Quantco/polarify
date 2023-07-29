@@ -1,5 +1,6 @@
 # ruff: noqa
 
+import inspect
 import polars as pl
 import pytest
 from hypothesis import given
@@ -177,7 +178,17 @@ functions = [
 
 @pytest.fixture(scope="module", params=functions)
 def test_funcs(request):
-    return polarify(request.param), request.param
+    original_func = request.param
+    transformed_func = polarify(original_func)
+    original_func_unparsed = inspect.getsource(original_func)
+    transformed_func_unparsed = inspect.getsource(transformed_func)
+    print(
+        (
+            f"Original:\n{original_func_unparsed}\n"
+            f"Transformed:\n{transformed_func_unparsed}"
+        )
+    )
+    return transformed_func, original_func
 
 
 @given(
