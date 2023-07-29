@@ -81,12 +81,8 @@ def chained_compare_expr(x):
 
 
 def test_chained_compare_fail():
-    try:
+    with pytest.raises(ValueError):
         polarify(chained_compare_expr)
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("Should have failed")
 
 
 def multiple_if_else(x):
