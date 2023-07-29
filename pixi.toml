@@ -8,7 +8,7 @@ platforms = ["osx-arm64", "linux-64", "osx-64"]
 
 [tasks]
 "postinstall" = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
-"test" = "python polarify/test.py"
+"test" = "pytest"
 "lint" = "pre-commit run --all"
 
 [dependencies]
