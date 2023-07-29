@@ -1,10 +1,12 @@
 import ast
 from copy import copy
 
-# TODO: Walruss
+# TODO: make Walruss throw ValueError
 # TODO: Switch
 
-def inline_all(expr: ast.expr, assignments: dict[str, ast.expr]) -> ast.expr:
+assignments = dict[str, ast.expr]
+
+def inline_all(expr: ast.expr, assignments: assignments) -> ast.expr:
     assignments = copy(assignments)
     if isinstance(expr, ast.Name):
         if expr.id not in assignments:
@@ -25,28 +27,38 @@ def is_returning_body(stmts: list[ast.stmt]) -> bool:
             if is_returning_body(s.body) and is_returning_body(s.orelse):
                 return True
             elif is_returning_body(s.body) ^ is_returning_body(s.orelse):
+                # TODO: investigate
                 raise ValueError("All branches of a If statement must either return or not for now")
     return False
 
-def regularize_assign_statement(stmt: ast.Assign, assignments: dict[str, ast.expr]) -> dict[str, ast.expr]:
-    assignments_updated = {}
+
+def handle_assign(stmt: ast.Assign, assignments: assignments) -> assignments:
+    assignments = copy(assignments)
+    diff_assignments = dict()
+
     for t in stmt.targets:
         if isinstance(t, ast.Name):
-            assignments_updated[t.id] = inline_all(stmt.value, assignments)
+            new_value = inline_all(stmt.value, assignments)
+            assignments[t.id] = new_value
+            diff_assignments[t.id] = new_value
         elif isinstance(t, ast.Tuple):
+            assert isinstance(stmt.value, ast.Tuple) or isinstance(stmt.value, ast.List) and len(t.elts) == len(stmt.value.elts)
             for sub_t, sub_v in zip(t.elts, stmt.value.elts):
-                if isinstance(sub_t, ast.Name):
-                    assignments_updated[sub_t.id] = inline_all(sub_v, assignments)
-                else:
-                    raise ValueError(
-                        f"Unsupported expression type inside of tuple: {type(sub_t)}"
-                    )
+                diff = handle_assign(ast.Assign(targets=[sub_t], value=sub_v), assignments)                
+                assignments.update(diff)
+                diff_assignments.update(diff)
+        elif isinstance(t, ast.List):
+            assert isinstance(stmt.value, ast.Tuple) or isinstance(stmt.value, ast.List) and len(t.elts) == len(stmt.value.elts)
+            for sub_t, sub_v in zip(t.elts, stmt.value.elts):
+                diff = handle_assign(ast.Assign(targets=[sub_t], value=sub_v), assignments)                
+                assignments.update(diff)
+                diff_assignments.update(diff)
         else:
-            raise ValueError(f"Unsupported expression type: {type(t)}")
-    return assignments_updated
+            raise ValueError(f"Unsupported expression type inside assignment target: {type(t)}")
+    return diff_assignments
 
 
-def handle_non_returning_if(stmt: ast.If, assignments: dict[str, ast.expr]) -> dict[str, ast.expr]:
+def handle_non_returning_if(stmt: ast.If, assignments: assignments) -> assignments:
     assignments = copy(assignments)
     assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
     test = inline_all(stmt.test, assignments)
@@ -65,13 +77,13 @@ def handle_non_returning_if(stmt: ast.If, assignments: dict[str, ast.expr]) -> d
     return diff_assignments
 
 
-def get_all_vars_changed_in_body(body: list[ast.stmt], assignments: dict[str, ast.expr]) -> dict[str, ast.expr]:
+def get_all_vars_changed_in_body(body: list[ast.stmt], assignments: assignments) -> assignments:
     assignments = copy(assignments)
     diff_assignments = dict()
 
     for s in body:
         if isinstance(s, ast.Assign):
-            diff = regularize_assign_statement(s, assignments)
+            diff = handle_assign(s, assignments)
             assignments.update(diff)
             diff_assignments.update(diff)
         elif isinstance(s, ast.If):
@@ -93,7 +105,7 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
         args=[test],
         keywords=[],
     )
-   
+
     then_node = ast.Call(
         func=ast.Attribute(value=when_node, attr="then", ctx=ast.Load()),
         args=[then],
@@ -106,13 +118,14 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
     )
     return final_node
 
-def parse_body(full_body: list[ast.stmt], assignments: dict[str, ast.expr] = {}):
+
+def parse_body(full_body: list[ast.stmt], assignments: assignments = {}):
     assignments = copy(assignments)
     assert len(full_body) > 0
     for i, stmt in enumerate(full_body):
         if isinstance(stmt, ast.Assign):
             # update assignments
-            assignments.update(regularize_assign_statement(stmt, assignments))
+            assignments.update(handle_assign(stmt, assignments))
         elif isinstance(stmt, ast.If):
             if is_returning_body(stmt.body) and is_returning_body(stmt.orelse):
                 test = inline_all(stmt.test, assignments)
@@ -232,14 +245,6 @@ if x > 0:
 elif x < 0:
     k = -1
 return k * c
-"""
-
-# TODO
-code = """
-k = 0
-if (k := x) > 0:
-    return k
-return -1
 """
 
 
