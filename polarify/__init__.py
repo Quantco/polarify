@@ -19,6 +19,7 @@ def polarify(func):
 
     # Unparse the modified AST back into source code
     new_func_code = ast.unparse(tree)
+    print(new_func_code)
 
     # Execute the new function code in the original function's globals
     exec_globals = func.__globals__

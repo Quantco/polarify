@@ -5,10 +5,10 @@ from typing import Union
 # TODO: make Walruss throw ValueError
 # TODO: Switch
 
-assignments = dict[str, ast.expr]
+Assignments = dict[str, ast.expr]
 
 
-def inline_all(expr: ast.expr, assignments: assignments) -> ast.expr:
+def inline_all(expr: ast.expr, assignments: Assignments) -> ast.expr:
     assignments = copy(assignments)
     if isinstance(expr, ast.Name):
         if expr.id in assignments:
@@ -39,7 +39,7 @@ def is_returning_body(stmts: list[ast.stmt]) -> bool:
     return False
 
 
-def handle_assign(stmt: ast.Assign, assignments: assignments) -> assignments:
+def handle_assign(stmt: ast.Assign, assignments: Assignments) -> Assignments:
     assignments = copy(assignments)
     diff_assignments = {}
 
@@ -67,7 +67,7 @@ def handle_assign(stmt: ast.Assign, assignments: assignments) -> assignments:
     return diff_assignments
 
 
-def handle_non_returning_if(stmt: ast.If, assignments: assignments) -> assignments:
+def handle_non_returning_if(stmt: ast.If, assignments: Assignments) -> Assignments:
     assignments = copy(assignments)
     assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
     test = inline_all(stmt.test, assignments)
@@ -75,11 +75,23 @@ def handle_non_returning_if(stmt: ast.If, assignments: assignments) -> assignmen
     diff_assignments = {}
     all_vars_changed_in_body = get_all_vars_changed_in_body(stmt.body, assignments)
     all_vars_changed_in_orelse = get_all_vars_changed_in_body(stmt.orelse, assignments)
+
+    def updated_or_default_assignments(var: str, diff: Assignments) -> ast.expr:
+        if var in diff:
+            return diff[var]
+        elif var in assignments:
+            return assignments[var]
+        else:
+            raise ValueError(
+                f"Variable {var} has to be either defined in"
+                " all branches or have a previous defintion"
+            )
+
     for var in all_vars_changed_in_body | all_vars_changed_in_orelse:
         expr = build_polars_when_then_otherwise(
             test,
-            all_vars_changed_in_body.get(var, assignments[var]),
-            all_vars_changed_in_orelse.get(var, assignments[var]),
+            updated_or_default_assignments(var, all_vars_changed_in_body),
+            updated_or_default_assignments(var, all_vars_changed_in_orelse),
         )
         assignments[var] = expr
         diff_assignments[var] = expr
@@ -87,8 +99,8 @@ def handle_non_returning_if(stmt: ast.If, assignments: assignments) -> assignmen
 
 
 def get_all_vars_changed_in_body(
-    body: list[ast.stmt], assignments: assignments
-) -> assignments:
+    body: list[ast.stmt], assignments: Assignments
+) -> Assignments:
     assignments = copy(assignments)
     diff_assignments = {}
 
@@ -132,7 +144,7 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
 
 
 def parse_body(
-    full_body: list[ast.stmt], assignments: Union[assignments, None] = None
+    full_body: list[ast.stmt], assignments: Union[Assignments, None] = None
 ) -> ast.expr:
     if assignments is None:
         assignments = {}
