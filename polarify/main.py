@@ -2,7 +2,7 @@ import ast
 from copy import copy
 from typing import Union
 
-# TODO: make Walruss throw ValueError
+# TODO: make walrus throw ValueError
 # TODO: Switch
 
 assignments = dict[str, ast.expr]

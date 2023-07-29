@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "polarify"
-description = "Add a short description here"
+description = "Transform python functions to polars expressions 🐻‍❄️"
 version = "0.1.0"
 readme = "README.md"
 license = "MIT"
@@ -72,10 +72,6 @@ select = [
     "N",
     # pyupgrade
     "UP"
-]
-ignore = [
-    # variable in function should be lowercase
-    "N806",
 ]
 
 [tool.mypy]

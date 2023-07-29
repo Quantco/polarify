@@ -28,6 +28,8 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/prefix-dev/pixi/main/install/install.sh | bash
       - name: Install dependencies
+        # TODO: make prettier once pixi supports it
+        # https://github.com/prefix-dev/pixi/issues/239
         run: |
           pixi add python=${{ matrix.PYTHON_VERSION }}
           pixi install
