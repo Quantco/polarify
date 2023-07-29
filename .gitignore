@@ -1,3 +1,5 @@
 # pixi environments
 .pixi
 pixi.lock
+
+__pycache__
