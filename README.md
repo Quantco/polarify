@@ -1,52 +1,80 @@
-# polarIFy
+# polarIFy: Simplifying conditional Polars Expressions with Python 🐍 🐻‍❄️
 
-polarIFy is a Python package that transforms python functions into polars expressions.
+Welcome to **polarIFy**, a Python function decorator that simplifies the way you write logical statements for Polars. With polarIFy, you can use Python's language structures like `if / elif / else` statements and transform them into `pl.when(..).then(..).otherwise(..)` statements. This makes your code more readable and less cumbersome to write. 🎉
+
+## 🎯 Usage
+
+polarIFy can automatically transform Python functions using `if / elif / else` statements into Polars expressions.
+
+### Basic Transformation
+
+Here's an example:
 
 ```python
 @polarify
-def complicated_row_operation(x: int) -> int:
-    k = 0
-    c = 2
+def signum(x: pl.Expr) -> pl.Expr:
+    s = 0
     if x > 0:
-        k = 1
-        c = 0
-        if x < 10:
-            c = 1
+        s = 1
     elif x < 0:
-        k = -1
-    return k * c
+        s = -1
+    return s
 ```
 
-After adding the `@polarify` decorator to the function, this function will be transformed into a function that uses polars expressions:
+This gets transformed into:
 
 ```python
-def polarified_operation(x: pl.Expr) -> pl.Expr:
-    return pl.when(x > 0).then(1).otherwise(
-        pl.when(x < 0).then(-1).otherwise(0)
-    ) * pl.when(x > 0).then(pl.when(x < 10).then(1).otherwise(0)).otherwise(2)
+def signum(x: pl.Expr) -> pl.Expr:
+    return pl.when(x > 0).then(1).otherwise(pl.when(x < 0).then(-1).otherwise(0))
+```
+### Handling Multiple Statements
+
+polarIFy can also handle multiple statements like:
+
+```python
+@polarify
+def multiple_if_statement(x: pl.Expr) -> pl.Expr:
+    a = 1 if x > 0 else 5
+    b = 2 if x < 0 else 2
+    return a + b
+```
+
+which becomes:
+
+```python
+def multiple_if_statement(x):
+    return pl.when(x > 0).then(1).otherwise(5) + pl.when(x < 0).then(2).otherwise(2)
+```
+
+### Handling Nested Statements
+
+Additionally, it can handle nested statements:
+
+```python
+@polarify
+def nested_if_else(x: pl.Expr) -> pl.Expr:
+    if x > 0:
+        if x > 1:
+            s = 2
+        else:
+            s = 1
+    elif x < 0:
+        s = -1
+    else:
+        s = 0
+    return s
+```
+
+which becomes:
+
+```python
+def nested_if_else(x: pl.Expr) -> pl.Expr:
+    return pl.when(x > 0).then(pl.when(x > 1).then(2).otherwise(1)).otherwise(pl.when(x < 0).then(-1).otherwise(0))
 ```
 
 So you can still write readable row-wise python code while the `@polarify` decorator transforms it into a function that works with efficient polars expressions.
 
-## Installation
-
-### conda
-
-```bash
-$ conda install -c conda-forge polarify
-# or micromamba
-$ micromamba install -c conda-forge polarify
-# or pixi
-$ pixi add polarify
-```
-
-### pip
-
-```bash
-$ pip install polarify
-```
-
-## Usage
+### Using a `polarify`d function
 
 ```python
 import polars as pl
@@ -84,9 +112,35 @@ print(result)
 
 TODO: complicated example with nested functions
 
+## ⚙️ How It Works
+
+polarIFy achieves this by parsing the AST (Abstract Syntax Tree) of the function and transforming the body into a Polars expression by inlining the different branches.
+
+## 💿 Installation
+
+### conda
+
+```bash
+$ conda install -c conda-forge polarify
+# or micromamba
+$ micromamba install -c conda-forge polarify
+# or pixi
+$ pixi add polarify
+```
+
+### pip
+
+```bash
+$ pip install polarify
+```
+
+## ⚠️ Limitations
+
+polarIFy is still in an early stage of development and doesn't support the full Python language. Here's a list of the currently supported and unsupported operations:
+
 ### Supported operations
 
-- `if/else/elif` statements
+- `if / else / elif` statements
 - binary operations (like `+`, `==`, `>`, `&`, `|`, ...)
 - unary operations (like `~`, `-`, `not`, ...) (TODO)
 - assignments (like `x = 1`)
@@ -102,11 +156,11 @@ TODO: complicated example with nested functions
 - `match ... case` statements (TODO)
 - functions with side-effects (`print`, `pl.write_csv`, ...)
 
-## Benchmarks
+## 🚀 Benchmarks
 
 TODO: Add some benchmarks
 
-## Development installation
+## 📥 Development installation
 
 ```bash
 $ pixi install
