@@ -29,8 +29,9 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/prefix-dev/pixi/main/install/install.sh | bash
       - name: Install dependencies
         run: |
+          pixi add python=${{ matrix.PYTHON_VERSION }}
           pixi install
-          pixi run pip install --no-build-isolation --no-deps --disable-pip-version-check -e .
+          pixi run postinstall
       - name: Run unittests
         uses: pavelzw/pytest-action@v2
         with:

@@ -7,10 +7,11 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "osx-64"]
 
 [tasks]
+"postinstall" = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
 "test" = "python polarify/test.py"
 
 [dependencies]
-"python" = ">= 3.9"
+python = ">= 3.9"
 "pip" = "*"
 "polars" = "0.18.8"
 # build
