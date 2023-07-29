@@ -162,7 +162,7 @@ TODO: Add some benchmarks
 
 ## 📥 Development installation
 
-```bash
+```
 $ pixi install
 $ pixi run postinstall
 $ pixi run test
