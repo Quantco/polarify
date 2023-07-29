@@ -46,6 +46,27 @@ def regularize_assign_statement(stmt: ast.Assign, assignments: dict[str, ast.exp
             raise ValueError(f"Unsupported expression type: {type(t)}")
     return assignments_updated
 
+
+def handle_non_returning_if(stmt: ast.If, assignments: dict[str, ast.expr]) -> dict[str, ast.expr]:
+    assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
+    test = inline_all(stmt.test, copy(assignments))
+
+    diff_assignments = dict()
+    assignments = copy(assignments)
+    # TODO: inconsequent when caller / callee copies assignments
+    all_vars_changed_in_body = get_all_vars_changed_in_body(stmt.body, assignments)
+    all_vars_changed_in_orelse = get_all_vars_changed_in_body(stmt.orelse, assignments)
+    for var in (all_vars_changed_in_body | all_vars_changed_in_orelse).keys():
+        expr = build_polars_when_then_otherwise(
+            test,
+            all_vars_changed_in_body.get(var, assignments[var]),
+            all_vars_changed_in_orelse.get(var, assignments[var])
+        )
+        assignments[var] = expr
+        diff_assignments[var] = expr
+    return diff_assignments
+
+
 def get_all_vars_changed_in_body(body: list[ast.stmt], assignments: dict[str, ast.expr]) -> dict[str, ast.expr]:
     assignments = copy(assignments)
     diff_assignments = dict()
@@ -56,7 +77,9 @@ def get_all_vars_changed_in_body(body: list[ast.stmt], assignments: dict[str, as
             assignments.update(diff)
             diff_assignments.update(diff)
         elif isinstance(s, ast.If):
-            raise NotImplementedError("If statements not supported yet")
+            if_diff = handle_non_returning_if(s, assignments)
+            assignments.update(if_diff)
+            diff_assignments.update(if_diff)
         elif isinstance(s, ast.Return):
             raise ValueError("This should not happen.")
         else:
@@ -135,18 +158,8 @@ def parse_body(full_body: list[ast.stmt], assignments={}):
                 body_everything = parse_body(stmt.body + full_body[i+1:], assignments=copy(assignments))
                 return build_polars_when_then_otherwise(test, orelse, body_everything)
             else:
-                assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
-                test = inline_all(stmt.test, copy(assignments))
-                # TODO: inconsequent when caller / callee copies assignments
-                all_vars_changed_in_body = get_all_vars_changed_in_body(stmt.body, assignments)
-                all_vars_changed_in_orelse = get_all_vars_changed_in_body(stmt.orelse, assignments)
-                for var in (all_vars_changed_in_body | all_vars_changed_in_orelse).keys():
-                    expr = build_polars_when_then_otherwise(
-                        test,
-                        all_vars_changed_in_body.get(var, assignments[var]),
-                        all_vars_changed_in_orelse.get(var, assignments[var])
-                    )
-                    assignments[var] = expr
+                diff = handle_non_returning_if(stmt, assignments)
+                assignments.update(diff)
 
         elif isinstance(stmt, ast.Return):
             # Handle return statements
@@ -189,7 +202,15 @@ if x >= 3:
 return k * 2
 """
 
-# TODO
+code = """
+k = 0
+if x > 0:
+    k = 1
+else:
+    k = -1
+return k
+"""
+
 code = """
 k = 0
 if x > 0:
@@ -201,11 +222,36 @@ return k
 
 code = """
 k = 0
+c = 2
 if x > 0:
     k = 1
-else:
+    c = 0
+return k * c
+"""
+
+code = """
+k = 0
+c = 2
+if x > 0:
+    k = 1
+    c = 0
+elif x < 0:
     k = -1
-return k
+return k * c
+"""
+
+
+code = """
+k = 0
+c = 2
+if x > 0:
+    k = 1
+    c = 0
+    if x < 10:
+        c = 1
+elif x < 0:
+    k = -1
+return k * c
 """
 
 
