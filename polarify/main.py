@@ -1,5 +1,6 @@
 import ast
 from copy import copy
+from typing import Union
 
 # TODO: make Walruss throw ValueError
 # TODO: Switch
@@ -45,19 +46,7 @@ def handle_assign(stmt: ast.Assign, assignments: assignments) -> assignments:
             new_value = inline_all(stmt.value, assignments)
             assignments[t.id] = new_value
             diff_assignments[t.id] = new_value
-        elif isinstance(t, ast.Tuple):
-            assert (
-                isinstance(stmt.value, ast.Tuple)
-                or isinstance(stmt.value, ast.List)
-                and len(t.elts) == len(stmt.value.elts)
-            )
-            for sub_t, sub_v in zip(t.elts, stmt.value.elts):
-                diff = handle_assign(
-                    ast.Assign(targets=[sub_t], value=sub_v), assignments
-                )
-                assignments.update(diff)
-                diff_assignments.update(diff)
-        elif isinstance(t, ast.List):
+        elif isinstance(t, (ast.List, ast.Tuple)):
             assert (
                 isinstance(stmt.value, ast.Tuple)
                 or isinstance(stmt.value, ast.List)
@@ -140,7 +129,11 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
     return final_node
 
 
-def parse_body(full_body: list[ast.stmt], assignments: assignments = {}) -> ast.expr:
+def parse_body(
+    full_body: list[ast.stmt], assignments: Union[assignments, None] = None
+) -> ast.expr:
+    if assignments is None:
+        assignments = {}
     assignments = copy(assignments)
     assert len(full_body) > 0
     for i, stmt in enumerate(full_body):
@@ -180,7 +173,10 @@ def parse_body(full_body: list[ast.stmt], assignments: assignments = {}) -> ast.
                 assignments.update(diff)
 
         elif isinstance(stmt, ast.Return):
+            if stmt.value is None:
+                raise ValueError("return needs a value")
             # Handle return statements
             return inline_all(stmt.value, assignments)
         else:
             raise ValueError(f"Unsupported statement type: {type(stmt)}")
+    raise ValueError("Missing return statement")

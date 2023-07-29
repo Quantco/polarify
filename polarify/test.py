@@ -1,3 +1,5 @@
+# ruff: noqa: PLR2004
+
 import polars as pl
 
 from polarify import polarify

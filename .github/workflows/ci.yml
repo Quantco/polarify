@@ -38,7 +38,7 @@ jobs:
           report-title: Unit tests Linux - Python ${{ matrix.PYTHON_VERSION }}
 
   pre-commit-checks:
-    name: Linux - pre-commit checks - Python 3.11
+    name: pre-commit
     timeout-minutes: 30
     runs-on: ubuntu-latest
     env:
