@@ -11,9 +11,11 @@ assignments = dict[str, ast.expr]
 def inline_all(expr: ast.expr, assignments: assignments) -> ast.expr:
     assignments = copy(assignments)
     if isinstance(expr, ast.Name):
-        if expr.id not in assignments:
-            raise ValueError(f"Variable {expr.id} not defined")
-        return inline_all(assignments[expr.id], assignments)
+        if expr.id in assignments:
+            return inline_all(assignments[expr.id], assignments)
+        else:
+            return expr
+
     elif isinstance(expr, ast.BinOp):
         expr.left = inline_all(expr.left, assignments)
         expr.right = inline_all(expr.right, assignments)
