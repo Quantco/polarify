@@ -14,7 +14,7 @@ defaults:
 
 jobs:
   linux-unittests:
-    name: "Unit tests Pixi - Python ${{ matrix.PYTHON_VERSION }}"
+    name: Unit tests Linux - Python ${{ matrix.PYTHON_VERSION }}
     timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
