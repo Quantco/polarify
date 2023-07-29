@@ -7,6 +7,9 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "osx-64"]
 
 [tasks]
+"test" = "python polarify/test.py"
 
 [dependencies]
 "polars" = "0.18.8"
+"pip" = "*"
+"hatchling" = "*"
