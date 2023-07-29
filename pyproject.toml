@@ -1,0 +1,86 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "polarify"
+description = "Add a short description here"
+version = "0.1.0"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    { name = "Bela Stoyan", email = "bela.stoyan@quantco.com" },
+    { name = "Pavel Zwerschke", email = "pavel.zwerschke@quantco.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "polars == 0.18.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/quantco/polarify"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/polarify",
+]
+
+[tool.black]
+target-version = ["py38"]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+select = [
+    # pyflakes
+    "F",
+    # pycodestyle
+    "E", "W",
+    # flake8-builtins
+    "A",
+    # flake8-bugbear
+    "B",
+    # flake8-comprehensions
+    "C4",
+    # flake8-simplify
+    "SIM",
+    # flake8-unused-arguments
+    "ARG",
+    # pylint
+    "PL",
+    # tidy
+    "TID",
+    # isort
+    "I",
+    # pep8-naming
+    "N",
+    # pyupgrade
+    "UP"
+]
+ignore = [
+    # variable in function should be lowercase
+    "N806",
+]
+
+[tool.mypy]
+python_version = "3.8"
+ignore_missing_imports = true
+no_implicit_optional = true
+check_untyped_defs = true
