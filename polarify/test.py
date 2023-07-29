@@ -1,11 +1,11 @@
 import ast
 from copy import copy
-from typing import Dict
 
 # TODO: Walruss
 # TODO: Switch
 
-def inline_all(expr, assignments):
+def inline_all(expr: ast.expr, assignments: dict[str, ast.expr]) -> ast.expr:
+    assignments = copy(assignments)
     if isinstance(expr, ast.Name):
         if expr.id not in assignments:
             raise ValueError(f"Variable {expr.id} not defined")
@@ -15,7 +15,6 @@ def inline_all(expr, assignments):
         expr.right = inline_all(expr.right, assignments)
         return expr
     else:
-        print("leaf", ast.unparse(expr), type(expr))
         return expr
 
 def is_returning_body(stmts: list[ast.stmt]) -> bool:
@@ -33,11 +32,11 @@ def regularize_assign_statement(stmt: ast.Assign, assignments: dict[str, ast.exp
     assignments_updated = {}
     for t in stmt.targets:
         if isinstance(t, ast.Name):
-            assignments_updated[t.id] = inline_all(stmt.value, copy(assignments))
+            assignments_updated[t.id] = inline_all(stmt.value, assignments)
         elif isinstance(t, ast.Tuple):
             for sub_t, sub_v in zip(t.elts, stmt.value.elts):
                 if isinstance(sub_t, ast.Name):
-                    assignments_updated[sub_t.id] = inline_all(sub_v, copy(assignments))
+                    assignments_updated[sub_t.id] = inline_all(sub_v, assignments)
                 else:
                     raise ValueError(
                         f"Unsupported expression type inside of tuple: {type(sub_t)}"
@@ -48,12 +47,11 @@ def regularize_assign_statement(stmt: ast.Assign, assignments: dict[str, ast.exp
 
 
 def handle_non_returning_if(stmt: ast.If, assignments: dict[str, ast.expr]) -> dict[str, ast.expr]:
+    assignments = copy(assignments)
     assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
-    test = inline_all(stmt.test, copy(assignments))
+    test = inline_all(stmt.test, assignments)
 
     diff_assignments = dict()
-    assignments = copy(assignments)
-    # TODO: inconsequent when caller / callee copies assignments
     all_vars_changed_in_body = get_all_vars_changed_in_body(stmt.body, assignments)
     all_vars_changed_in_orelse = get_all_vars_changed_in_body(stmt.orelse, assignments)
     for var in (all_vars_changed_in_body | all_vars_changed_in_orelse).keys():
@@ -108,54 +106,36 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
     )
     return final_node
 
-def parse_body(full_body: list[ast.stmt], assignments={}):
+def parse_body(full_body: list[ast.stmt], assignments: dict[str, ast.expr] = {}):
+    assignments = copy(assignments)
     assert len(full_body) > 0
     for i, stmt in enumerate(full_body):
         if isinstance(stmt, ast.Assign):
             # update assignments
             assignments.update(regularize_assign_statement(stmt, assignments))
         elif isinstance(stmt, ast.If):
-            # Handle if statements
             if is_returning_body(stmt.body) and is_returning_body(stmt.orelse):
-                # TODO: refactor
-                test = inline_all(stmt.test, copy(assignments))
-                when_node = ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()
-                    ),
-                    args=[test],
-                    keywords=[],
-                )
-                body = parse_body(stmt.body, assignments=copy(assignments))
-                then_node = ast.Call(
-                    func=ast.Attribute(value=when_node, attr="then", ctx=ast.Load()),
-                    args=[body],
-                    keywords=[],
-                )
-                orelse = parse_body(stmt.orelse, assignments=copy(assignments))
-                final_node = ast.Call(
-                    func=ast.Attribute(value=then_node, attr="otherwise", ctx=ast.Load()),
-                    args=[orelse],
-                    keywords=[],
-                )
-                return final_node
+                test = inline_all(stmt.test, assignments)
+                body = parse_body(stmt.body, assignments)
+                orelse = parse_body(stmt.orelse, assignments)
+                return build_polars_when_then_otherwise(test, body, orelse)
             elif is_returning_body(stmt.body):
-                test = inline_all(stmt.test, copy(assignments))
-                body = parse_body(stmt.body, assignments=copy(assignments))
-                orelse_everything = parse_body(stmt.orelse + full_body[i+1:], assignments=copy(assignments))
+                test = inline_all(stmt.test, assignments)
+                body = parse_body(stmt.body, assignments)
+                orelse_everything = parse_body(stmt.orelse + full_body[i+1:], assignments)
                 return build_polars_when_then_otherwise(test, body, orelse_everything)
             elif is_returning_body(stmt.orelse):
                 test = ast.Call(
                     func=ast.Attribute(
-                        value=inline_all(stmt.test, copy(assignments)),
+                        value=inline_all(stmt.test, assignments),
                         attr="not",
                         ctx=ast.Load()
                     ),
                     args=[],
                     keywords=[],
                 )
-                orelse = parse_body(stmt.orelse, assignments=copy(assignments))
-                body_everything = parse_body(stmt.body + full_body[i+1:], assignments=copy(assignments))
+                orelse = parse_body(stmt.orelse, assignments)
+                body_everything = parse_body(stmt.body + full_body[i+1:], assignments)
                 return build_polars_when_then_otherwise(test, orelse, body_everything)
             else:
                 diff = handle_non_returning_if(stmt, assignments)
@@ -254,10 +234,17 @@ elif x < 0:
 return k * c
 """
 
+# TODO
+code = """
+k = 0
+if (k := x) > 0:
+    return k
+return -1
+"""
+
 
 tree = ast.parse(code)
 transformed = parse_body(tree.body)
 unparsed = ast.unparse(transformed)
 
-print(ast.dump(transformed))
 print(unparsed)

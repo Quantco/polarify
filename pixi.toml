@@ -12,4 +12,5 @@ platforms = ["osx-arm64", "linux-64", "osx-64"]
 [dependencies]
 "polars" = "0.18.8"
 "pip" = "*"
+"python" = "3.9"
 "hatchling" = "*"
