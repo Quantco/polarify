@@ -161,7 +161,7 @@ functions = [
     compare_expr,
     multiple_if_else,
     nested_if_else,
-    # nested_if_else_expr,
+    nested_if_else_expr,
     assignments_inside_branch,
     override_default,
     no_if_else,
