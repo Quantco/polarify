@@ -149,6 +149,12 @@ def no_if_else(x):
     return s * k
 
 
+def two_if_expr(x):
+    a = 1 if x > 0 else 5
+    b = 2 if x < 0 else 2
+    return a + b
+
+
 functions = [
     signum,
     early_return,
@@ -165,6 +171,7 @@ functions = [
     assignments_inside_branch,
     override_default,
     no_if_else,
+    two_if_expr,
 ]
 
 
