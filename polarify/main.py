@@ -38,9 +38,9 @@ def inline_all(expr: ast.expr, assignments: Assignments) -> ast.expr:
     elif isinstance(expr, ast.Constant):
         return expr
     elif isinstance(expr, ast.Compare):
-        # polars cant handle exprs like 1 <= a < 10
+        # polars can't handle exprs like 1 <= a < 10
         if len(expr.comparators) > 1:
-            raise ValueError("Polars cant handle chained comparisons")
+            raise ValueError("Polars can't handle chained comparisons")
         expr.left = inline_all(expr.left, assignments)
         expr.comparators = [inline_all(c, assignments) for c in expr.comparators]
         return expr
