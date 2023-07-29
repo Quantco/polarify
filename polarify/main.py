@@ -35,8 +35,18 @@ def inline_all(expr: ast.expr, assignments: Assignments) -> ast.expr:
         body = inline_all(expr.body, assignments)
         orelse = inline_all(expr.orelse, assignments)
         return build_polars_when_then_otherwise(test, body, orelse)
-    else:
+    elif isinstance(expr, ast.Constant):
         return expr
+    elif isinstance(expr, ast.Compare):
+        # polars cant handle exprs like 1 <= a < 10
+        if len(expr.comparators) > 1:
+            raise ValueError("Polars cant handle chained comparisons")
+        expr.left = inline_all(expr.left, assignments)
+        expr.comparators = [inline_all(c, assignments) for c in expr.comparators]
+        return expr
+
+    else:
+        raise ValueError(f"Unsupported expression type: {type(expr)}")
 
 
 def is_returning_body(stmts: list[ast.stmt]) -> bool:

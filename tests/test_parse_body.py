@@ -63,6 +63,31 @@ def if_expr3(x):
     return s
 
 
+def compare_expr(x):
+    if (0 < x) & (x < 10):
+        s = 1
+    else:
+        s = 2
+    return s
+
+
+def chained_compare_expr(x):
+    if 0 < x < 10:
+        s = 1
+    else:
+        s = 2
+    return s
+
+
+def test_chained_compare_fail():
+    try:
+        polarify(chained_compare_expr)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Should have failed")
+
+
 def multiple_if_else(x):
     if x > 0:
         s = 1
@@ -133,6 +158,7 @@ functions = [
     if_expr,
     if_expr2,
     if_expr3,
+    compare_expr,
     multiple_if_else,
     nested_if_else,
     # nested_if_else_expr,
