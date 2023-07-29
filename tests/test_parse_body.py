@@ -33,8 +33,33 @@ def assign_both_branches(x):
     return s
 
 
+def unary_expr(x):
+    s = -x
+    return s
+
+
+def call_target_identity(x):
+    return x
+
+
+def call_expr(x):
+    k = x * 2
+    s = call_target_identity(k + 3)
+    return s
+
+
 def if_expr(x):
     s = 1 if x > 0 else -1
+    return s
+
+
+def if_expr2(x):
+    s = 1 + (x if x > 0 else -1)
+    return s
+
+
+def if_expr3(x):
+    s = 1 + ((3 if x < 10 else 5) if x > 0 else -1)
     return s
 
 
@@ -103,7 +128,11 @@ functions = [
     signum,
     early_return,
     assign_both_branches,
-    # if_expr,
+    unary_expr,
+    call_expr,
+    if_expr,
+    if_expr2,
+    if_expr3,
     multiple_if_else,
     nested_if_else,
     # nested_if_else_expr,

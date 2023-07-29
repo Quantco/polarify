@@ -8,6 +8,7 @@ from typing import Union
 Assignments = dict[str, ast.expr]
 
 
+# ruff: noqa: PLR0911
 def inline_all(expr: ast.expr, assignments: Assignments) -> ast.expr:
     assignments = copy(assignments)
     if isinstance(expr, ast.Name):
@@ -15,11 +16,25 @@ def inline_all(expr: ast.expr, assignments: Assignments) -> ast.expr:
             return inline_all(assignments[expr.id], assignments)
         else:
             return expr
-
     elif isinstance(expr, ast.BinOp):
         expr.left = inline_all(expr.left, assignments)
         expr.right = inline_all(expr.right, assignments)
         return expr
+    elif isinstance(expr, ast.UnaryOp):
+        expr.operand = inline_all(expr.operand, assignments)
+        return expr
+    elif isinstance(expr, ast.Call):
+        expr.args = [inline_all(arg, assignments) for arg in expr.args]
+        expr.keywords = [
+            ast.keyword(arg=k.arg, value=inline_all(k.value, assignments))
+            for k in expr.keywords
+        ]
+        return expr
+    elif isinstance(expr, ast.IfExp):
+        test = inline_all(expr.test, assignments)
+        body = inline_all(expr.body, assignments)
+        orelse = inline_all(expr.orelse, assignments)
+        return build_polars_when_then_otherwise(test, body, orelse)
     else:
         return expr
 
