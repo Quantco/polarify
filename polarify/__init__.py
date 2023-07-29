@@ -9,12 +9,13 @@ def polarify(func):
     source = inspect.getsource(func)
     print(source)
     tree = ast.parse(source)
-    expr = parse_body(tree.body[0].body)
+    func_def: ast.FunctionDef = tree.body[0]  # type: ignore
+    expr = parse_body(func_def.body)
 
     # Replace the body of the function with the parsed expr
-    tree.body[0].body = [ast.Return(expr)]
+    func_def.body = [ast.Return(expr)]
     # TODO: make this prettier
-    tree.body[0].decorator_list = []
+    func_def.decorator_list = []
 
     # Unparse the modified AST back into source code
     new_func_code = ast.unparse(tree)

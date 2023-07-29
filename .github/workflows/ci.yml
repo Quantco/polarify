@@ -39,6 +39,7 @@ jobs:
           report-title: Unit tests Linux - Python ${{ matrix.PYTHON_VERSION }}
 
   pre-commit-checks:
+    # TODO: switch to pixi once there is a good way
     name: pre-commit
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -59,7 +60,7 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
   lint-workflow-files:
-    name: "Lint workflow files"
+    name: Lint workflow files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
