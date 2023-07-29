@@ -1,6 +1,7 @@
 import polars as pl
 
 from polarify import polarify
+
 code = """
 c = d = 2
 x, y = pl.col("x") * c, pl.col("y") * d
@@ -100,6 +101,7 @@ def f(x: pl.Expr) -> pl.Expr:
     elif x < 0:
         k = -1
     return k * c
+
 
 a = f(pl.col("x"))
 print(type(a))

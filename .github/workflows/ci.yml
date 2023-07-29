@@ -1,0 +1,71 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -el {0}
+
+jobs:
+  linux-unittests:
+    name: "Unit tests Pixi - Python ${{ matrix.PYTHON_VERSION }}"
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        PYTHON_VERSION: ['3.9', '3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v3
+      # TODO: move to action once it is available
+      - name: Set up pixi
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/prefix-dev/pixi/main/install/install.sh | bash
+      - name: Install dependencies
+        run: |
+          pixi install
+          pixi run pip install --no-build-isolation --no-deps --disable-pip-version-check -e .
+      - name: Run unittests
+        uses: pavelzw/pytest-action@v2
+        with:
+          custom-pytest: pixi run pytest
+          report-title: Unit tests Linux - Python ${{ matrix.PYTHON_VERSION }}
+
+  pre-commit-checks:
+    name: Linux - pre-commit checks - Python 3.11
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    env:
+      PRE_COMMIT_USE_MICROMAMBA: 1
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3.5.2
+      - name: Set up micromamba
+        uses: mamba-org/setup-micromamba@d05808540d968a55ca33c798e0661fb98f533c73
+      - name: Add micromamba to GITHUB_PATH
+        run: echo "${HOME}/micromamba-bin" >> "$GITHUB_PATH"
+      - name: Install Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.0
+
+  lint-workflow-files:
+    name: "Lint workflow files"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+      # https://github.com/rhysd/actionlint/blob/main/docs/usage.md#use-actionlint-on-github-actions
+      - name: Download actionlint
+        id: get_actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+      - name: Check workflow files
+        run: ${{ steps.get_actionlint.outputs.executable }} -color

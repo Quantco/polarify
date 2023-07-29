@@ -10,7 +10,12 @@ platforms = ["osx-arm64", "linux-64", "osx-64"]
 "test" = "python polarify/test.py"
 
 [dependencies]
-"polars" = "0.18.8"
-"pip" = "*"
 "python" = "3.9"
+"pip" = "*"
+"polars" = "0.18.8"
+# build
 "hatchling" = "*"
+# test
+"pytest" = "*"
+"pytest-md" = "*"
+"pytest-emoji" = "*"

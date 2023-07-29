@@ -1,7 +1,9 @@
 import ast
-from functools import wraps
 import inspect
+from functools import wraps
+
 from main import parse_body
+
 
 def polarify(func):
     source = inspect.getsource(func)
