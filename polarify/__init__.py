@@ -2,7 +2,7 @@ import ast
 import inspect
 from functools import wraps
 
-from main import parse_body
+from .main import parse_body
 
 
 def polarify(func):

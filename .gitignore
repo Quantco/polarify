@@ -3,3 +3,5 @@
 pixi.lock
 
 __pycache__
+
+.hypothesis/
