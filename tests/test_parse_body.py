@@ -1,8 +1,9 @@
 import polars as pl
-from polarify import polarify
-from polars.testing.parametric import dataframes, column
-from polars.testing import assert_frame_equal
 from hypothesis import given
+from polars.testing import assert_frame_equal
+from polars.testing.parametric import column, dataframes
+
+from polarify import polarify
 
 
 @polarify
@@ -23,6 +24,7 @@ def literal_signum(x: int) -> int:
         s = -1
     return s
 
+
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_signum(df: pl.DataFrame):
     x = pl.col("x")
@@ -39,10 +41,12 @@ def transformed_early_return(x: pl.Expr) -> pl.Expr:
         return 1
     return 0
 
+
 def literal_early_return(x: int) -> int:
     if x > 0:
         return 1
     return 0
+
 
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_early_return(df: pl.DataFrame):
@@ -53,20 +57,17 @@ def test_transform_early_return(df: pl.DataFrame):
         check_dtype=False,
     )
 
+
 @polarify
 def transformed_assign_both_branches(x: pl.Expr) -> pl.Expr:
-    if x > 0:
-        s = 1
-    else:
-        s = -1
+    s = 1 if x > 0 else -1
     return s
 
+
 def literal_assign_both_branches(x: int) -> int:
-    if x > 0:
-        s = 1
-    else:
-        s = -1
+    s = 1 if x > 0 else -1
     return s
+
 
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_assign_both_branches(df: pl.DataFrame):
@@ -76,6 +77,7 @@ def test_transform_assign_both_branches(df: pl.DataFrame):
         df.apply(lambda r: literal_assign_both_branches(r[0])),
         check_dtype=False,
     )
+
 
 @polarify
 def transformed_multiple_if_else(x: pl.Expr) -> pl.Expr:
@@ -87,6 +89,7 @@ def transformed_multiple_if_else(x: pl.Expr) -> pl.Expr:
         s = 0
     return s
 
+
 def literal_multiple_if_else(x: int) -> int:
     if x > 0:
         s = 1
@@ -95,6 +98,7 @@ def literal_multiple_if_else(x: int) -> int:
     else:
         s = 0
     return s
+
 
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_multiple_if_else(df: pl.DataFrame):
@@ -105,30 +109,27 @@ def test_transform_multiple_if_else(df: pl.DataFrame):
         check_dtype=False,
     )
 
+
 @polarify
 def transformed_nested_if_else(x: pl.Expr) -> pl.Expr:
     if x > 0:
-        if x > 1:
-            s = 2
-        else:
-            s = 1
+        s = 2 if x > 1 else 1
     elif x < 0:
         s = -1
     else:
         s = 0
     return s
 
+
 def literal_nested_if_else(x: int) -> int:
     if x > 0:
-        if x > 1:
-            s = 2
-        else:
-            s = 1
+        s = 2 if x > 1 else 1
     elif x < 0:
         s = -1
     else:
         s = 0
     return s
+
 
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_nested_if_else(df: pl.DataFrame):
@@ -138,6 +139,7 @@ def test_transform_nested_if_else(df: pl.DataFrame):
         df.apply(lambda r: literal_nested_if_else(r[0])),
         check_dtype=False,
     )
+
 
 @polarify
 def transform_assignments_inside_branch(x: pl.Expr) -> pl.Expr:
@@ -153,6 +155,7 @@ def transform_assignments_inside_branch(x: pl.Expr) -> pl.Expr:
         s = 0
     return s
 
+
 def literal_assignments_inside_branch(x: int) -> int:
     if x > 0:
         s = 1
@@ -166,6 +169,7 @@ def literal_assignments_inside_branch(x: int) -> int:
         s = 0
     return s
 
+
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_assignments_inside_branch(df: pl.DataFrame):
     x = pl.col("x")
@@ -175,6 +179,7 @@ def test_transform_assignments_inside_branch(df: pl.DataFrame):
         check_dtype=False,
     )
 
+
 @polarify
 def transform_override_default(x: pl.Expr) -> pl.Expr:
     s = 0
@@ -182,11 +187,13 @@ def transform_override_default(x: pl.Expr) -> pl.Expr:
         s = 10
     return x * s
 
+
 def literal_override_default(x: int) -> int:
     s = 0
     if x > 0:
         s = 10
     return x * s
+
 
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_override_default(df: pl.DataFrame):
@@ -197,6 +204,7 @@ def test_transform_override_default(df: pl.DataFrame):
         check_dtype=False,
     )
 
+
 @polarify
 def transform_no_if_else(x: pl.Expr) -> pl.Expr:
     s = x * 10
@@ -204,11 +212,13 @@ def transform_no_if_else(x: pl.Expr) -> pl.Expr:
     k = k * 2
     return s * k
 
+
 def literal_no_if_else(x: int) -> int:
     s = x * 10
     k = x - 3
     k = k * 2
     return s * k
+
 
 @given(df=dataframes(column("x", dtype=pl.Int8), min_size=1))
 def test_transform_no_if_else(df: pl.DataFrame):
