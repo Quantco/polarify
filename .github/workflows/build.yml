@@ -1,0 +1,71 @@
+name: Build
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version-changed: ${{ steps.version-metadata.outputs.changed }}
+      new-version: ${{ steps.version-metadata.outputs.newVersion }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Python build
+        run: pip install build
+      - name: Build project
+        run: python -m build
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: dist/*
+      - name: Make sure version in pyproject.toml and pixi.toml are in sync
+        run: |
+          [ "$(yq '.project.version' pixi.toml)" = "$(yq '.project.version' pyproject.toml)" ]
+      - uses: Quantco/ui-actions/version-metadata@v1
+        id: version-metadata
+        with:
+          file: ./pixi.toml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version-extraction-override: 'regex:version = "(.*)"'
+
+  release:
+    # TODO: enable once we want to release this package
+    if: false
+    # if: github.event_name == 'push' && github.ref_name == 'main' && needs.build.outputs.version-changed == 'true'
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+      - name: Publish package on TestPyPi
+        uses: pypa/gh-action-pypi-publish@f8c70e705ffc13c3b4d1221169b84f12a75d6ca8
+        with:
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+      - name: Publish package on PyPi
+        uses: pypa/gh-action-pypi-publish@f8c70e705ffc13c3b4d1221169b84f12a75d6ca8
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+      - uses: actions/checkout@v3
+      - name: Push v${{ needs.build.outputs.new-version }} tag
+        run: |
+          git tag v${{ needs.build.outputs.new-version }}
+          git push origin v${{ needs.build.outputs.new-version }}
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          tag_name: v${{ needs.build.outputs.new-version }}
+          draft: true

@@ -7,10 +7,19 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "osx-64"]
 
 [tasks]
+"postinstall" = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
 "test" = "python polarify/test.py"
+"lint" = "pre-commit run --all"
 
 [dependencies]
-"polars" = "0.18.8"
+python = ">= 3.9"
 "pip" = "*"
-"python" = "3.9"
+"polars" = "0.18.8"
+# build
 "hatchling" = "*"
+# test
+"pytest" = "*"
+"pytest-md" = "*"
+"pytest-emoji" = "*"
+# linting
+"pre-commit" = "*"

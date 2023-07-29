@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-toml
+  - repo: https://github.com/quantco/pre-commit-mirrors-ruff
+    rev: v0.0.280
+    hooks:
+      - id: ruff-conda
+  - repo: https://github.com/quantco/pre-commit-mirrors-black
+    rev: 23.7.0
+    hooks:
+      - id: black-conda
+        args:
+          - --safe
+          - --target-version=py39
+  - repo: https://github.com/quantco/pre-commit-mirrors-mypy
+    rev: 1.4.1
+    hooks:
+      - id: mypy-conda
