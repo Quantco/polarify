@@ -20,6 +20,14 @@ def signum(x):
     return s
 
 
+def signum_no_default(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    return 0
+
+
 def early_return(x):
     if x > 0:
         return 1
@@ -181,6 +189,7 @@ functions = [
 
 xfail_functions = [
     walrus_expr,
+    signum_no_default,
 ]
 
 
@@ -196,6 +205,7 @@ def test_funcs(request):
     original_func = request.param
     transformed_func = polarify(original_func)
     original_func_unparsed = inspect.getsource(original_func)
+    # build ast from transformed function as format as string
     transformed_func_unparsed = inspect.getsource(transformed_func)
     print(
         (
