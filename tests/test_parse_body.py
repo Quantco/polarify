@@ -85,6 +85,14 @@ def test_chained_compare_fail():
         polarify(chained_compare_expr)
 
 
+def walrus_expr(x):
+    if (y := x + 1) > 0:
+        s = 1
+    else:
+        s = -1
+    return s * y
+
+
 def multiple_if_else(x):
     if x > 0:
         s = 1
@@ -171,8 +179,19 @@ functions = [
     two_if_expr,
 ]
 
+xfail_functions = [
+    walrus_expr,
+]
 
-@pytest.fixture(scope="module", params=functions)
+
+@pytest.fixture(
+    scope="module",
+    params=functions
+    + [
+        pytest.param(f, marks=pytest.mark.xfail(reason="not implemented"))
+        for f in xfail_functions
+    ],
+)
 def test_funcs(request):
     original_func = request.param
     transformed_func = polarify(original_func)
