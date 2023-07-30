@@ -9,20 +9,20 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
 [tasks]
-"postinstall" = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
-"test" = "pytest"
-"lint" = "pre-commit run --all"
+postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
+test = "pytest"
+lint = "pre-commit run --all"
 
 [dependencies]
-python = ">= 3.9"
-"pip" = "*"
-"polars" = "0.18.8"
+python = ">=3.9"
+pip = "*"
+polars = ">=0.18,<0.19"
 # build
-"hatchling" = "*"
+hatchling = "*"
 # test
-"pytest" = "*"
-"pytest-md" = "*"
-"pytest-emoji" = "*"
-"hypothesis" = "*"
+pytest = "*"
+pytest-md = "*"
+pytest-emoji = "*"
+hypothesis = "*"
 # linting
-"pre-commit" = "*"
+pre-commit = "*"
