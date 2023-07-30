@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "polarify"
-description = "Transform python functions to polars expressions 🐻‍❄️"
+description = "Simplifying conditional Polars Expressions with Python 🐍 🐻‍❄️"
 version = "0.1.0"
 readme = "README.md"
 license = "MIT"
