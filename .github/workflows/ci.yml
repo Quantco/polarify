@@ -14,13 +14,20 @@ defaults:
 
 jobs:
   linux-unittests:
-    name: Unit tests Linux - Python ${{ matrix.PYTHON_VERSION }}
+    name: Unit tests Linux - ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
     timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ['3.9', '3.10', '3.11']
+        include:
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.14.28' }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.15' }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.16' }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.17' }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.18' }
+          - { PYTHON_VERSION: 'python=3.10', POLARS_VERSION: '' }
+          - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '' }
     steps:
       - uses: actions/checkout@v3
       # TODO: move to action once it is available
@@ -28,17 +35,17 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/prefix-dev/pixi/main/install/install.sh | bash
       - name: Install dependencies
-        # TODO: make prettier once pixi supports it
+        # TODO: make prettier once there are feature flags
         # https://github.com/prefix-dev/pixi/issues/239
         run: |
-          pixi add python=${{ matrix.PYTHON_VERSION }}
+          pixi add ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
           pixi install
           pixi run postinstall
       - name: Run unittests
         uses: pavelzw/pytest-action@v2
         with:
           custom-pytest: pixi run pytest
-          report-title: Unit tests Linux - Python ${{ matrix.PYTHON_VERSION }}
+          report-title: Unit tests Linux - ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
 
   pre-commit-checks:
     # TODO: switch to pixi once there is a good way

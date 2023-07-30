@@ -12,7 +12,12 @@ def transform_func_to_new_source(func) -> str:
     expr = parse_body(func_def.body)
 
     # Replace the body of the function with the parsed expr
-    func_def.body = [ast.Return(expr)]
+    # Also import polars as pl since this is used in the generated code
+    # We don't want to rely on the user having imported polars as pl
+    func_def.body = [
+        ast.Import(names=[ast.alias(name="polars", asname="pl")]),
+        ast.Return(value=expr),
+    ]
     # TODO: make this prettier
     func_def.decorator_list = []
     func_def.name += "_polarified"
