@@ -8,45 +8,77 @@ from typing import Union
 Assignments = dict[str, ast.expr]
 
 
-# ruff: noqa: PLR0911
-def inline_all(expr: ast.expr, assignments: Assignments) -> ast.expr:
-    assignments = copy(assignments)
-    if isinstance(expr, ast.Name):
-        if expr.id in assignments:
-            return inline_all(assignments[expr.id], assignments)
-        else:
-            return expr
-    elif isinstance(expr, ast.BinOp):
-        expr.left = inline_all(expr.left, assignments)
-        expr.right = inline_all(expr.right, assignments)
-        return expr
-    elif isinstance(expr, ast.UnaryOp):
-        expr.operand = inline_all(expr.operand, assignments)
-        return expr
-    elif isinstance(expr, ast.Call):
-        expr.args = [inline_all(arg, assignments) for arg in expr.args]
-        expr.keywords = [
-            ast.keyword(arg=k.arg, value=inline_all(k.value, assignments))
-            for k in expr.keywords
-        ]
-        return expr
-    elif isinstance(expr, ast.IfExp):
-        test = inline_all(expr.test, assignments)
-        body = inline_all(expr.body, assignments)
-        orelse = inline_all(expr.orelse, assignments)
-        return build_polars_when_then_otherwise(test, body, orelse)
-    elif isinstance(expr, ast.Constant):
-        return expr
-    elif isinstance(expr, ast.Compare):
-        # polars can't handle exprs like 1 <= a < 10
-        if len(expr.comparators) > 1:
-            raise ValueError("Polars can't handle chained comparisons")
-        expr.left = inline_all(expr.left, assignments)
-        expr.comparators = [inline_all(c, assignments) for c in expr.comparators]
-        return expr
+def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast.expr):
+    when_node = ast.Call(
+        func=ast.Attribute(
+            value=ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()
+        ),
+        args=[test],
+        keywords=[],
+    )
 
-    else:
-        raise ValueError(f"Unsupported expression type: {type(expr)}")
+    then_node = ast.Call(
+        func=ast.Attribute(value=when_node, attr="then", ctx=ast.Load()),
+        args=[then],
+        keywords=[],
+    )
+    final_node = ast.Call(
+        func=ast.Attribute(value=then_node, attr="otherwise", ctx=ast.Load()),
+        args=[orelse],
+        keywords=[],
+    )
+    return final_node
+
+
+# ruff: noqa: N802
+class InlineTransformer(ast.NodeTransformer):
+    def __init__(self, assignments: Assignments):
+        self.assignments = assignments
+
+    @classmethod
+    def inline_expr(cls, expr: ast.expr, assignments: Assignments) -> ast.expr:
+        return cls(assignments).visit(expr)
+
+    def visit_Name(self, node):
+        if node.id in self.assignments:
+            return self.visit(self.assignments[node.id])
+        else:
+            return node
+
+    def visit_BinOp(self, node):
+        node.left = self.visit(node.left)
+        node.right = self.visit(node.right)
+        return node
+
+    def visit_UnaryOp(self, node):
+        node.operand = self.visit(node.operand)
+        return node
+
+    def visit_Call(self, node):
+        node.args = [self.visit(arg) for arg in node.args]
+        node.keywords = [
+            ast.keyword(arg=k.arg, value=self.visit(k.value)) for k in node.keywords
+        ]
+        return node
+
+    def visit_IfExp(self, node):
+        test = self.visit(node.test)
+        body = self.visit(node.body)
+        orelse = self.visit(node.orelse)
+        return build_polars_when_then_otherwise(test, body, orelse)
+
+    def visit_Constant(self, node):
+        return node
+
+    def visit_Compare(self, node):
+        if len(node.comparators) > 1:
+            raise ValueError("Polars can't handle chained comparisons")
+        node.left = self.visit(node.left)
+        node.comparators = [self.visit(c) for c in node.comparators]
+        return node
+
+    def generic_visit(self, node):
+        raise ValueError(f"Unsupported expression type: {type(node)}")
 
 
 def is_returning_body(stmts: list[ast.stmt]) -> bool:
@@ -70,7 +102,7 @@ def handle_assign(stmt: ast.Assign, assignments: Assignments) -> Assignments:
 
     for t in stmt.targets:
         if isinstance(t, ast.Name):
-            new_value = inline_all(stmt.value, assignments)
+            new_value = InlineTransformer.inline_expr(stmt.value, assignments)
             assignments[t.id] = new_value
             diff_assignments[t.id] = new_value
         elif isinstance(t, (ast.List, ast.Tuple)):
@@ -95,7 +127,7 @@ def handle_assign(stmt: ast.Assign, assignments: Assignments) -> Assignments:
 def handle_non_returning_if(stmt: ast.If, assignments: Assignments) -> Assignments:
     assignments = copy(assignments)
     assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
-    test = inline_all(stmt.test, assignments)
+    test = InlineTransformer.inline_expr(stmt.test, assignments)
 
     diff_assignments = {}
     all_vars_changed_in_body = get_all_vars_changed_in_body(stmt.body, assignments)
@@ -146,28 +178,6 @@ def get_all_vars_changed_in_body(
     return diff_assignments
 
 
-def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast.expr):
-    when_node = ast.Call(
-        func=ast.Attribute(
-            value=ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()
-        ),
-        args=[test],
-        keywords=[],
-    )
-
-    then_node = ast.Call(
-        func=ast.Attribute(value=when_node, attr="then", ctx=ast.Load()),
-        args=[then],
-        keywords=[],
-    )
-    final_node = ast.Call(
-        func=ast.Attribute(value=then_node, attr="otherwise", ctx=ast.Load()),
-        args=[orelse],
-        keywords=[],
-    )
-    return final_node
-
-
 def parse_body(
     full_body: list[ast.stmt], assignments: Union[Assignments, None] = None
 ) -> ast.expr:
@@ -181,12 +191,12 @@ def parse_body(
             assignments.update(handle_assign(stmt, assignments))
         elif isinstance(stmt, ast.If):
             if is_returning_body(stmt.body) and is_returning_body(stmt.orelse):
-                test = inline_all(stmt.test, assignments)
+                test = InlineTransformer.inline_expr(stmt.test, assignments)
                 body = parse_body(stmt.body, assignments)
                 orelse = parse_body(stmt.orelse, assignments)
                 return build_polars_when_then_otherwise(test, body, orelse)
             elif is_returning_body(stmt.body):
-                test = inline_all(stmt.test, assignments)
+                test = InlineTransformer.inline_expr(stmt.test, assignments)
                 body = parse_body(stmt.body, assignments)
                 orelse_everything = parse_body(
                     stmt.orelse + full_body[i + 1 :], assignments
@@ -195,7 +205,7 @@ def parse_body(
             elif is_returning_body(stmt.orelse):
                 test = ast.Call(
                     func=ast.Attribute(
-                        value=inline_all(stmt.test, assignments),
+                        value=InlineTransformer.inline_expr(stmt.test, assignments),
                         attr="not",
                         ctx=ast.Load(),
                     ),
@@ -215,7 +225,7 @@ def parse_body(
             if stmt.value is None:
                 raise ValueError("return needs a value")
             # Handle return statements
-            return inline_all(stmt.value, assignments)
+            return InlineTransformer.inline_expr(stmt.value, assignments)
         else:
             raise ValueError(f"Unsupported statement type: {type(stmt)}")
     raise ValueError("Missing return statement")
