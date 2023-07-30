@@ -8,7 +8,7 @@ from polars.testing import assert_frame_equal
 from polars.testing.parametric import column, dataframes
 from hypothesis.strategies import integers
 
-from polarify import polarify
+from polarify import polarify, transform_func_to_new_source
 
 
 def signum(x):
@@ -206,7 +206,7 @@ def test_funcs(request):
     transformed_func = polarify(original_func)
     original_func_unparsed = inspect.getsource(original_func)
     # build ast from transformed function as format as string
-    transformed_func_unparsed = inspect.getsource(transformed_func)
+    transformed_func_unparsed = transform_func_to_new_source(original_func)
     print(
         (
             f"Original:\n{original_func_unparsed}\n"
