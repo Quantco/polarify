@@ -10,7 +10,7 @@ platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
 [tasks]
 "postinstall" = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
-"test" = "python polarify/test.py"
+"test" = "pytest"
 "lint" = "pre-commit run --all"
 
 [dependencies]
@@ -23,5 +23,6 @@ python = ">= 3.9"
 "pytest" = "*"
 "pytest-md" = "*"
 "pytest-emoji" = "*"
+"hypothesis" = "*"
 # linting
 "pre-commit" = "*"
