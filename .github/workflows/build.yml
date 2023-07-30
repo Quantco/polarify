@@ -37,11 +37,14 @@ jobs:
           version-extraction-override: 'regex:version = "(.*)"'
 
   release:
-    # TODO: enable once we want to release this package
-    if: false
-    # if: github.event_name == 'push' && github.ref_name == 'main' && needs.build.outputs.version-changed == 'true'
+    name: Publish package
+    if: github.event_name == 'push' && github.ref_name == 'main' && needs.build.outputs.version-changed == 'true'
     needs: [build]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    environment: pypi
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -50,14 +53,9 @@ jobs:
       - name: Publish package on TestPyPi
         uses: pypa/gh-action-pypi-publish@f8c70e705ffc13c3b4d1221169b84f12a75d6ca8
         with:
-          user: __token__
-          password: ${{ secrets.TEST_PYPI_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
       - name: Publish package on PyPi
         uses: pypa/gh-action-pypi-publish@f8c70e705ffc13c3b4d1221169b84f12a75d6ca8
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
       - uses: actions/checkout@v3
       - name: Push v${{ needs.build.outputs.new-version }} tag
         run: |
