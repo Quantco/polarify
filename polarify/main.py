@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import ast
-from copy import copy
-from typing import Union
+from copy import copy, deepcopy
+from dataclasses import dataclass
 
 # TODO: make walrus throw ValueError
 # TODO: Switch
-
-Assignments = dict[str, ast.expr]
 
 
 def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast.expr):
@@ -32,12 +32,12 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
 
 # ruff: noqa: N802
 class InlineTransformer(ast.NodeTransformer):
-    def __init__(self, assignments: Assignments):
+    def __init__(self, assignments: dict[str, ast.expr]):
         self.assignments = assignments
 
     @classmethod
-    def inline_expr(cls, expr: ast.expr, assignments: Assignments) -> ast.expr:
-        return cls(assignments).visit(expr)
+    def inline_expr(cls, expr: ast.expr, assignments: dict[str, ast.expr]) -> ast.expr:
+        return cls(assignments).visit(deepcopy(expr))
 
     def visit_Name(self, node):
         if node.id in self.assignments:
@@ -81,151 +81,140 @@ class InlineTransformer(ast.NodeTransformer):
         raise ValueError(f"Unsupported expression type: {type(node)}")
 
 
+@dataclass
+class Assignments:
+    assignments: dict[str, ast.expr]
+
+    def handle_assign(self, stmt: ast.Assign):
+        def _handle_assign(stmt: ast.Assign, assignments: dict[str, ast.expr]):
+            for t in stmt.targets:
+                if isinstance(t, ast.Name):
+                    new_value = InlineTransformer.inline_expr(stmt.value, assignments)
+                    assignments[t.id] = new_value
+                elif isinstance(t, (ast.List, ast.Tuple)):
+                    assert (
+                        isinstance(stmt.value, ast.Tuple)
+                        or isinstance(stmt.value, ast.List)
+                        and len(t.elts) == len(stmt.value.elts)
+                    )
+                    for sub_t, sub_v in zip(t.elts, stmt.value.elts):
+                        diff = _handle_assign(
+                            ast.Assign(targets=[sub_t], value=sub_v), assignments
+                        )
+                        assignments.update(diff)
+                else:
+                    raise ValueError(
+                        f"Unsupported expression type inside assignment target: {type(t)}"
+                    )
+
+        _handle_assign(stmt, self.assignments)
+
+
+@dataclass
+class ReturnExpr:
+    expr: ast.expr
+
+
+@dataclass
+class BranchState:
+    state: Assignments | ReturnExpr
+
+
+@dataclass
+class Conditional:
+    test: ast.expr
+    then: Node
+    orelse: Node
+
+
+@dataclass
+class Node:
+    node: BranchState | Conditional
+
+    def handle_assignment(self, expr: ast.Assign):
+        if isinstance(self.node, BranchState):
+            if isinstance(self.node.state, Assignments):
+                self.node.state.handle_assign(expr)
+        else:
+            self.node.then.handle_assignment(expr)
+            self.node.orelse.handle_assignment(expr)
+
+    def handle_if(self, stmt: ast.If):
+        if isinstance(self.node, BranchState):
+            if isinstance(self.node.state, Assignments):
+                self.node = Conditional(
+                    test=InlineTransformer.inline_expr(
+                        stmt.test, self.node.state.assignments
+                    ),
+                    then=parse_body(stmt.body, copy(self.node.state.assignments)),
+                    orelse=parse_body(stmt.orelse, copy(self.node.state.assignments)),
+                )
+        else:
+            self.node.then.handle_if(stmt)
+            self.node.orelse.handle_if(stmt)
+
+    def handle_return(self, value: ast.expr):
+        if isinstance(self.node, BranchState):
+            if isinstance(self.node.state, Assignments):
+                self.node.state = ReturnExpr(
+                    expr=InlineTransformer.inline_expr(
+                        value, self.node.state.assignments
+                    )
+                )
+        else:
+            self.node.then.handle_return(value)
+            self.node.orelse.handle_return(value)
+
+    def check_all_branches_return(self):
+        if isinstance(self.node, BranchState):
+            return bool(isinstance(self.node.state, ReturnExpr))
+        else:
+            return (
+                self.node.then.check_all_branches_return()
+                and self.node.orelse.check_all_branches_return()
+            )
+
+
 def is_returning_body(stmts: list[ast.stmt]) -> bool:
     for s in stmts:
         if isinstance(s, ast.Return):
             return True
         elif isinstance(s, ast.If):
-            if is_returning_body(s.body) and is_returning_body(s.orelse):
-                return True
-            elif is_returning_body(s.body) ^ is_returning_body(s.orelse):
-                # TODO: investigate
-                raise ValueError(
-                    "All branches of a If statement must either return or not for now"
-                )
+            return bool(is_returning_body(s.body) and is_returning_body(s.orelse))
     return False
 
 
-def handle_assign(stmt: ast.Assign, assignments: Assignments) -> Assignments:
-    assignments = copy(assignments)
-    diff_assignments = {}
-
-    for t in stmt.targets:
-        if isinstance(t, ast.Name):
-            new_value = InlineTransformer.inline_expr(stmt.value, assignments)
-            assignments[t.id] = new_value
-            diff_assignments[t.id] = new_value
-        elif isinstance(t, (ast.List, ast.Tuple)):
-            assert (
-                isinstance(stmt.value, ast.Tuple)
-                or isinstance(stmt.value, ast.List)
-                and len(t.elts) == len(stmt.value.elts)
-            )
-            for sub_t, sub_v in zip(t.elts, stmt.value.elts):
-                diff = handle_assign(
-                    ast.Assign(targets=[sub_t], value=sub_v), assignments
-                )
-                assignments.update(diff)
-                diff_assignments.update(diff)
-        else:
-            raise ValueError(
-                f"Unsupported expression type inside assignment target: {type(t)}"
-            )
-    return diff_assignments
-
-
-def handle_non_returning_if(stmt: ast.If, assignments: Assignments) -> Assignments:
-    assignments = copy(assignments)
-    assert not is_returning_body(stmt.orelse) and not is_returning_body(stmt.body)
-    test = InlineTransformer.inline_expr(stmt.test, assignments)
-
-    diff_assignments = {}
-    all_vars_changed_in_body = get_all_vars_changed_in_body(stmt.body, assignments)
-    all_vars_changed_in_orelse = get_all_vars_changed_in_body(stmt.orelse, assignments)
-
-    def updated_or_default_assignments(var: str, diff: Assignments) -> ast.expr:
-        if var in diff:
-            return diff[var]
-        elif var in assignments:
-            return assignments[var]
-        else:
-            raise ValueError(
-                f"Variable {var} has to be either defined in"
-                " all branches or have a previous defintion"
-            )
-
-    for var in all_vars_changed_in_body | all_vars_changed_in_orelse:
-        expr = build_polars_when_then_otherwise(
-            test,
-            updated_or_default_assignments(var, all_vars_changed_in_body),
-            updated_or_default_assignments(var, all_vars_changed_in_orelse),
-        )
-        assignments[var] = expr
-        diff_assignments[var] = expr
-    return diff_assignments
-
-
-def get_all_vars_changed_in_body(
-    body: list[ast.stmt], assignments: Assignments
-) -> Assignments:
-    assignments = copy(assignments)
-    diff_assignments = {}
-
-    for s in body:
-        if isinstance(s, ast.Assign):
-            diff = handle_assign(s, assignments)
-            assignments.update(diff)
-            diff_assignments.update(diff)
-        elif isinstance(s, ast.If):
-            if_diff = handle_non_returning_if(s, assignments)
-            assignments.update(if_diff)
-            diff_assignments.update(if_diff)
-        elif isinstance(s, ast.Return):
-            raise ValueError("This should not happen.")
-        else:
-            raise ValueError(f"Unsupported statement type: {type(s)}")
-
-    return diff_assignments
-
-
 def parse_body(
-    full_body: list[ast.stmt], assignments: Union[Assignments, None] = None
-) -> ast.expr:
+    full_body: list[ast.stmt], assignments: dict[str, ast.expr] | None = None
+) -> Node:
     if assignments is None:
         assignments = {}
-    assignments = copy(assignments)
-    assert len(full_body) > 0
-    for i, stmt in enumerate(full_body):
+    state = Node(BranchState(Assignments(assignments)))
+    for stmt in full_body:
         if isinstance(stmt, ast.Assign):
-            # update assignments
-            assignments.update(handle_assign(stmt, assignments))
+            state.handle_assignment(stmt)
         elif isinstance(stmt, ast.If):
-            if is_returning_body(stmt.body) and is_returning_body(stmt.orelse):
-                test = InlineTransformer.inline_expr(stmt.test, assignments)
-                body = parse_body(stmt.body, assignments)
-                orelse = parse_body(stmt.orelse, assignments)
-                return build_polars_when_then_otherwise(test, body, orelse)
-            elif is_returning_body(stmt.body):
-                test = InlineTransformer.inline_expr(stmt.test, assignments)
-                body = parse_body(stmt.body, assignments)
-                orelse_everything = parse_body(
-                    stmt.orelse + full_body[i + 1 :], assignments
-                )
-                return build_polars_when_then_otherwise(test, body, orelse_everything)
-            elif is_returning_body(stmt.orelse):
-                test = ast.Call(
-                    func=ast.Attribute(
-                        value=InlineTransformer.inline_expr(stmt.test, assignments),
-                        attr="not",
-                        ctx=ast.Load(),
-                    ),
-                    args=[],
-                    keywords=[],
-                )
-                orelse = parse_body(stmt.orelse, assignments)
-                body_everything = parse_body(
-                    stmt.body + full_body[i + 1 :], assignments
-                )
-                return build_polars_when_then_otherwise(test, orelse, body_everything)
-            else:
-                diff = handle_non_returning_if(stmt, assignments)
-                assignments.update(diff)
-
+            state.handle_if(stmt)
         elif isinstance(stmt, ast.Return):
             if stmt.value is None:
                 raise ValueError("return needs a value")
-            # Handle return statements
-            return InlineTransformer.inline_expr(stmt.value, assignments)
+
+            state.handle_return(stmt.value)
+            break
         else:
             raise ValueError(f"Unsupported statement type: {type(stmt)}")
-    raise ValueError("Missing return statement")
+    return state
+
+
+def transform_tree_into_expr(node: Node) -> ast.expr:
+    if isinstance(node.node, BranchState):
+        if isinstance(node.node.state, ReturnExpr):
+            return node.node.state.expr
+        else:
+            raise ValueError("Not all branches return")
+    else:
+        return build_polars_when_then_otherwise(
+            node.node.test,
+            transform_tree_into_expr(node.node.then),
+            transform_tree_into_expr(node.node.orelse),
+        )

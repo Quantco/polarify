@@ -171,9 +171,9 @@ functions = [
     override_default,
     no_if_else,
     two_if_expr,
+    signum_no_default,
 ]
 
 xfail_functions = [
     walrus_expr,
-    signum_no_default,
 ]
