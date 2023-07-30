@@ -12,8 +12,8 @@
 [conda-forge]: https://prefix.dev/channels/conda-forge/packages/polarify
 [conda-forge-badge]: https://img.shields.io/conda/pn/conda-forge/polarify?style=flat-square&logoColor=white&logo=conda-forge
 [pypi]: https://pypi.org/project/polarify
-[pypi-badge]: https://img.shields.io/pypi/v/polarify.svg?logo=pypi&logoColor=white
-[python-version-badge]: https://img.shields.io/pypi/pyversions/polarify?logoColor=white&logo=python
+[pypi-badge]: https://img.shields.io/pypi/v/polarify.svg?style=flat-square&logo=pypi&logoColor=white
+[python-version-badge]: https://img.shields.io/pypi/pyversions/polarify?style=flat-square&logoColor=white&logo=python
 
 Welcome to **polarIFy**, a Python function decorator that simplifies the way you write logical statements for Polars. With polarIFy, you can use Python's language structures like `if / elif / else` statements and transform them into `pl.when(..).then(..).otherwise(..)` statements. This makes your code more readable and less cumbersome to write. 🎉
 
