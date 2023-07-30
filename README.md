@@ -1,5 +1,20 @@
 # polarIFy: Simplifying conditional Polars Expressions with Python 🐍 🐻‍❄️
 
+![License][license-badge]
+[![Build Status][build-badge]][build]
+[![conda-forge][conda-forge-badge]][conda-forge]
+[![pypi-version][pypi-badge]][pypi]
+[![python-version][python-version-badge]][pypi]
+
+[license-badge]: https://img.shields.io/badge/license-MIT-blue?style=flat-square
+[build-badge]: https://img.shields.io/github/actions/workflow/status/quantco/polarify/ci.yml?style=flat-square&branch=main
+[build]: https://github.com/quantco/polarify/actions/
+[conda-forge]: https://prefix.dev/channels/conda-forge/packages/polarify
+[conda-forge-badge]: https://img.shields.io/conda/pn/conda-forge/polarify?style=flat-square&logoColor=white&logo=conda-forge
+[pypi]: https://pypi.org/project/polarify
+[pypi-badge]: https://img.shields.io/pypi/v/polarify.svg?logo=pypi&logoColor=white
+[python-version-badge]: https://img.shields.io/pypi/pyversions/polarify?logoColor=white&logo=python
+
 Welcome to **polarIFy**, a Python function decorator that simplifies the way you write logical statements for Polars. With polarIFy, you can use Python's language structures like `if / elif / else` statements and transform them into `pl.when(..).then(..).otherwise(..)` statements. This makes your code more readable and less cumbersome to write. 🎉
 
 ## 🎯 Usage
