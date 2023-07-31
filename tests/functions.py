@@ -71,6 +71,14 @@ def compare_expr(x):
     return s
 
 
+def compare_expr_bool(x):
+    if (0 < x) and (x < 10):
+        s = 1
+    else:
+        s = 2
+    return s
+
+
 def chained_compare_expr(x):
     if 0 < x < 10:
         s = 1
@@ -176,4 +184,5 @@ functions = [
 
 xfail_functions = [
     walrus_expr,
+    compare_expr_bool,
 ]
