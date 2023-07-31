@@ -84,12 +84,11 @@ def compare_expr(x):
     return s
 
 
-def compare_expr_bool(x):
+def bool_op(x):
     if (0 < x) and (x < 10):
-        s = 1
+        return 0
     else:
-        s = 2
-    return s
+        return 1
 
 
 def chained_compare_expr(x):
@@ -198,5 +197,10 @@ functions = [
 
 xfail_functions = [
     walrus_expr,
-    compare_expr_bool,
+]
+
+unsupported_functions = [
+    # function, match string in error message
+    (chained_compare_expr, "Polars can't handle chained comparisons"),
+    (bool_op, "ast.BoolOp"),  # TODO: make error message more specific
 ]
