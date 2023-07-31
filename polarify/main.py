@@ -88,7 +88,8 @@ class InlineTransformer(ast.NodeTransformer):
 @dataclass
 class UnresolvedState:
     """
-    When a execution flow is not finished (i.e., not returned) in a function, we need to keep track of the assignments.
+    When a execution flow is not finished (i.e., not returned) in a function, we need to keep track
+    of the assignments.
     """
 
     assignments: dict[str, ast.expr]
@@ -100,6 +101,10 @@ class UnresolvedState:
                     new_value = InlineTransformer.inline_expr(stmt.value, assignments)
                     assignments[t.id] = new_value
                 elif isinstance(t, (ast.List, ast.Tuple)):
+                    if not isinstance(stmt.value, (ast.List, ast.Tuple)):
+                        raise ValueError(
+                            f"Assignment target is {type(t)}, but value is {type(stmt.value)}"
+                        )
                     assert len(t.elts) == len(stmt.value.elts)
                     for sub_t, sub_v in zip(t.elts, stmt.value.elts):
                         diff = _handle_assign(
