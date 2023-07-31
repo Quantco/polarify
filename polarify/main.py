@@ -36,7 +36,7 @@ class InlineTransformer(ast.NodeTransformer):
         self.assignments = assignments
 
     @classmethod
-    def inline_expr(cls, expr: ast.expr, assignments: dict[str, ast.expr]) -> ast.expr: # TODO
+    def inline_expr(cls, expr: ast.expr, assignments: dict[str, ast.expr]) -> ast.expr:
         expr = cls(assignments).visit(deepcopy(expr))
         assert isinstance(expr, ast.expr)
         return expr
