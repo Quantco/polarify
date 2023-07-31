@@ -19,6 +19,19 @@ def signum_no_default(x):
     return 0
 
 
+def nested_partial_return_with_assignments(x):
+    if x > 0:
+        s = 1
+        if x > 1:
+            s = 2
+            return s + x
+        else:
+            s = -1
+    else:
+        return -5 - x
+    return s * x
+
+
 def early_return(x):
     if x > 0:
         return 1
@@ -180,6 +193,7 @@ functions = [
     no_if_else,
     two_if_expr,
     signum_no_default,
+    nested_partial_return_with_assignments,
 ]
 
 xfail_functions = [
