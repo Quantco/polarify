@@ -19,6 +19,19 @@ def signum_no_default(x):
     return 0
 
 
+def nested_partial_return_with_assignments(x):
+    if x > 0:
+        s = 1
+        if x > 1:
+            s = 2
+            return s + x
+        else:
+            s = -1
+    else:
+        return -5 - x
+    return s * x
+
+
 def early_return(x):
     if x > 0:
         return 1
@@ -69,6 +82,13 @@ def compare_expr(x):
     else:
         s = 2
     return s
+
+
+def bool_op(x):
+    if (0 < x) and (x < 10):
+        return 0
+    else:
+        return 1
 
 
 def chained_compare_expr(x):
@@ -171,9 +191,16 @@ functions = [
     override_default,
     no_if_else,
     two_if_expr,
+    signum_no_default,
+    nested_partial_return_with_assignments,
 ]
 
 xfail_functions = [
     walrus_expr,
-    signum_no_default,
+]
+
+unsupported_functions = [
+    # function, match string in error message
+    (chained_compare_expr, "Polars can't handle chained comparisons"),
+    (bool_op, "ast.BoolOp"),  # TODO: make error message more specific
 ]

@@ -2,9 +2,11 @@ import pytest
 
 from polarify import polarify
 
-from .functions import chained_compare_expr
+from .functions import unsupported_functions
 
 
-def test_chained_compare_fail():
-    with pytest.raises(ValueError):
-        polarify(chained_compare_expr)
+@pytest.mark.parametrize("func_match", unsupported_functions)
+def test_unsupported_functions(func_match):
+    func, match = func_match
+    with pytest.raises(ValueError, match=match):
+        polarify(func)

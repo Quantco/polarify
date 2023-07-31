@@ -2,14 +2,16 @@ import ast
 import inspect
 from functools import wraps
 
-from .main import parse_body
+from .main import parse_body, transform_tree_into_expr
 
 
 def transform_func_to_new_source(func) -> str:
     source = inspect.getsource(func)
     tree = ast.parse(source)
     func_def: ast.FunctionDef = tree.body[0]  # type: ignore
-    expr = parse_body(func_def.body)
+    root_node = parse_body(func_def.body)
+
+    expr = transform_tree_into_expr(root_node)
 
     # Replace the body of the function with the parsed expr
     # Also import polars as pl since this is used in the generated code

@@ -42,6 +42,7 @@ This gets transformed into:
 def signum(x: pl.Expr) -> pl.Expr:
     return pl.when(x > 0).then(1).otherwise(pl.when(x < 0).then(-1).otherwise(0))
 ```
+
 ### Handling Multiple Statements
 
 polarIFy can also handle multiple statements like:
@@ -123,6 +124,38 @@ print(result)
 # │ 5   ┆ 1       │
 # │ 10  ┆ 0       │
 # └─────┴─────────┘
+```
+
+### Displaying the transpiled polars expression
+
+You can also display the transpiled polars expression by calling the `transform_func_to_new_source` method:
+
+```python
+from polarify import transform_func_to_new_source
+
+def signum(x):
+    s = 0
+    if x > 0:
+        s = 1
+    elif x < 0:
+        s = -1
+    return s
+
+
+print(f"Original function:\n{inspect.getsource(signum)}")
+# Original function:
+# def signum(x):
+#     s = 0
+#     if x > 0:
+#         s = 1
+#     elif x < 0:
+#         s = -1
+#     return s
+print(f"Transformed function:\n{transform_func_to_new_source(signum)}")
+# Transformed function:
+# def signum_polarified(x):
+#     import polars as pl
+#     return pl.when(x > 0).then(1).otherwise(pl.when(x < 0).then(-1).otherwise(0))
 ```
 
 TODO: complicated example with nested functions
