@@ -8,7 +8,9 @@ from dataclasses import dataclass
 # TODO: match ... case
 
 
-def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast.expr) -> ast.Call:
+def build_polars_when_then_otherwise(
+    test: ast.expr, then: ast.expr, orelse: ast.expr
+) -> ast.Call:
     when_node = ast.Call(
         func=ast.Attribute(
             value=ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()
@@ -88,6 +90,7 @@ class UnresolvedState:
     """
     When a execution flow is not finished (i.e., not returned) in a function, we need to keep track of the assignments.
     """
+
     assignments: dict[str, ast.expr]
 
     def handle_assign(self, stmt: ast.Assign):
@@ -116,6 +119,7 @@ class ReturnState:
     """
     The expression of a return statement.
     """
+
     expr: ast.expr
 
 
@@ -124,6 +128,7 @@ class ConditionalState:
     """
     A conditional state, with a test expression and two branches.
     """
+
     test: ast.expr
     then: State
     orelse: State
@@ -135,6 +140,7 @@ class State:
     A state in the execution flow.
     Either unresolved assignments, a return statement, or a conditional state.
     """
+
     node: UnresolvedState | ReturnState | ConditionalState
 
     def handle_assign(self, expr: ast.Assign):
@@ -147,9 +153,7 @@ class State:
     def handle_if(self, stmt: ast.If):
         if isinstance(self.node, UnresolvedState):
             self.node = ConditionalState(
-                test=InlineTransformer.inline_expr(
-                    stmt.test, self.node.assignments
-                ),
+                test=InlineTransformer.inline_expr(stmt.test, self.node.assignments),
                 then=parse_body(stmt.body, copy(self.node.assignments)),
                 orelse=parse_body(stmt.orelse, copy(self.node.assignments)),
             )
@@ -160,9 +164,7 @@ class State:
     def handle_return(self, value: ast.expr):
         if isinstance(self.node, UnresolvedState):
             self.node = ReturnState(
-                expr=InlineTransformer.inline_expr(
-                    value, self.node.assignments
-                )
+                expr=InlineTransformer.inline_expr(value, self.node.assignments)
             )
         elif isinstance(self.node, ConditionalState):
             self.node.then.handle_return(value)
