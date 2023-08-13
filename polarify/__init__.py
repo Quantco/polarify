@@ -6,7 +6,6 @@ from functools import wraps
 
 from .main import parse_body, transform_tree_into_expr
 
-
 try:
     __version__ = importlib.metadata.version(__name__)
 except importlib.metadata.PackageNotFoundError as e:
