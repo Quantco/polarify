@@ -51,11 +51,11 @@ jobs:
           name: artifact
           path: dist
       - name: Publish package on TestPyPi
-        uses: pypa/gh-action-pypi-publish@f8c70e705ffc13c3b4d1221169b84f12a75d6ca8
+        uses: pypa/gh-action-pypi-publish@b7f401de30cb6434a1e19f805ff006643653240e
         with:
           repository-url: https://test.pypi.org/legacy/
       - name: Publish package on PyPi
-        uses: pypa/gh-action-pypi-publish@f8c70e705ffc13c3b4d1221169b84f12a75d6ca8
+        uses: pypa/gh-action-pypi-publish@b7f401de30cb6434a1e19f805ff006643653240e
       - uses: actions/checkout@v3
       - name: Push v${{ needs.build.outputs.new-version }} tag
         run: |
