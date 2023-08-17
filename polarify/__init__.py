@@ -1,8 +1,17 @@
 import ast
+import importlib.metadata
 import inspect
+import warnings
 from functools import wraps
 
 from .main import parse_body, transform_tree_into_expr
+
+try:
+    __version__ = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFoundError as e:
+    warnings.warn(f"Could not determine version of {__name__}", stacklevel=1)
+    warnings.warn(str(e), stacklevel=1)
+    __version__ = "unknown"
 
 
 def transform_func_to_new_source(func) -> str:
