@@ -18,6 +18,6 @@ repos:
           - --safe
           - --target-version=py39
   - repo: https://github.com/quantco/pre-commit-mirrors-mypy
-    rev: 1.5.0
+    rev: 1.5.1
     hooks:
       - id: mypy-conda
