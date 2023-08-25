@@ -163,6 +163,7 @@ TODO: complicated example with nested functions
 ## ⚙️ How It Works
 
 polarIFy achieves this by parsing the AST (Abstract Syntax Tree) of the function and transforming the body into a Polars expression by inlining the different branches.
+To get a more detailed understanding of what's happening under the hood, check out our [blog post](https://tech.quantco.com/2023/08/25/polarify.html) explaining how polarify works!
 
 ## 💿 Installation
 
