@@ -6,7 +6,7 @@
 [![pypi-version][pypi-badge]][pypi]
 [![python-version][python-version-badge]][pypi]
 
-[license-badge]: https://img.shields.io/badge/license-MIT-blue?style=flat-square
+[license-badge]: https://img.shields.io/github/license/quantco/polarify?style=flat-square
 [build-badge]: https://img.shields.io/github/actions/workflow/status/quantco/polarify/ci.yml?style=flat-square&branch=main
 [build]: https://github.com/quantco/polarify/actions/
 [conda-forge]: https://prefix.dev/channels/conda-forge/packages/polarify
