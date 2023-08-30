@@ -16,7 +16,7 @@ lint = "pre-commit run --all"
 [dependencies]
 python = ">=3.9"
 pip = "*"
-polars = ">=0.14.24,<0.19"
+polars = ">=0.14.24,<0.20"
 # build
 hatchling = "*"
 # test

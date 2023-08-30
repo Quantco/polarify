@@ -26,6 +26,7 @@ jobs:
           - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.16' }
           - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.17' }
           - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.18' }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.19' }
           - { PYTHON_VERSION: 'python=3.10', POLARS_VERSION: '' }
           - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '' }
     steps:
