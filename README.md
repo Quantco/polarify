@@ -170,17 +170,17 @@ To get a more detailed understanding of what's happening under the hood, check o
 ### conda
 
 ```bash
-$ conda install -c conda-forge polarify
+conda install -c conda-forge polarify
 # or micromamba
-$ micromamba install -c conda-forge polarify
+micromamba install -c conda-forge polarify
 # or pixi
-$ pixi add polarify
+pixi add polarify
 ```
 
 ### pip
 
 ```bash
-$ pip install polarify
+pip install polarify
 ```
 
 ## ⚠️ Limitations
@@ -211,8 +211,8 @@ TODO: Add some benchmarks
 
 ## 📥 Development installation
 
-```
-$ pixi install
-$ pixi run postinstall
-$ pixi run test
+```bash
+pixi install
+pixi run postinstall
+pixi run test
 ```

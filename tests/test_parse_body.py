@@ -50,8 +50,16 @@ def test_funcs(request):
 def test_transform_function(df: polars.DataFrame, test_funcs):
     x = polars.col("x")
     transformed_func, original_func = test_funcs
+
+    if pl_version < Version("0.19.0"):
+        df_with_transformed_func = df.select(transformed_func(x).alias("apply"))
+        df_with_applied_func = df.apply(lambda r: original_func(r[0]))
+    else:
+        df_with_transformed_func = df.select(transformed_func(x).alias("map"))
+        df_with_applied_func = df.map_rows(lambda r: original_func(r[0]))
+
     assert_frame_equal(
-        df.select(transformed_func(x).alias("apply")),
-        df.apply(lambda r: original_func(r[0])),
+        df_with_transformed_func,
+        df_with_applied_func,
         check_dtype=False,
     )
