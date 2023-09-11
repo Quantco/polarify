@@ -31,10 +31,9 @@ jobs:
           - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '' }
     steps:
       - uses: actions/checkout@v4
-      # TODO: move to action once it is available
-      - name: Set up pixi
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/prefix-dev/pixi/main/install/install.sh | bash
+      - uses: prefix-dev/setup-pixi@v0.2.0
+        with:
+          run-install: false
       - name: Install dependencies
         # TODO: make prettier once there are feature flags
         # https://github.com/prefix-dev/pixi/issues/239
