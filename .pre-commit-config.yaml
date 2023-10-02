@@ -7,11 +7,11 @@ repos:
       - id: trailing-whitespace
       - id: check-toml
   - repo: https://github.com/quantco/pre-commit-mirrors-ruff
-    rev: 0.0.287
+    rev: 0.0.291
     hooks:
       - id: ruff-conda
   - repo: https://github.com/quantco/pre-commit-mirrors-black
-    rev: 23.7.0
+    rev: 23.9.1
     hooks:
       - id: black-conda
         args:
