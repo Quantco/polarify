@@ -2,20 +2,22 @@ changelog:
   exclude:
     labels:
       - ignore for release
-      - ci
   categories:
-    - title: New features
+    - title: ✨ New features
       labels:
         - enhancement
-    - title: Bug fixes
+    - title: 🐛 Bug fixes
       labels:
         - bug
-    - title: Documentation
+    - title: 📝 Documentation
       labels:
         - documentation
-    - title: Dependencies
+    - title: ⬆️ Dependencies
       labels:
         - dependencies
-    - title: Other changes
+    - title: 🚀 CI
+      labels:
+        - ci
+    - title: 🤷🏻 Other changes
       labels:
         - '*'
