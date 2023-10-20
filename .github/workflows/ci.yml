@@ -8,28 +8,26 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash -el {0}
-
 jobs:
-  linux-unittests:
-    name: Unit tests Linux - ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
+  tests:
+    name: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }} ${{ matrix.os }}
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.14.28' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.15' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.16' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.17' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.18' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.19' }
-          - { PYTHON_VERSION: 'python=3.10', POLARS_VERSION: '' }
-          - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '' }
-          - { PYTHON_VERSION: 'python=3.12', POLARS_VERSION: '' }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.14.28', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.15', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.16', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.17', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.18', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.19', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.10', POLARS_VERSION: '', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.12', POLARS_VERSION: '', os: ubuntu-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: '', os: macos-latest }
+          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: '', os: windows-latest }
     steps:
       - uses: actions/checkout@v4
       - uses: prefix-dev/setup-pixi@v0.3.0
@@ -46,7 +44,7 @@ jobs:
         uses: pavelzw/pytest-action@v2
         with:
           custom-pytest: pixi run pytest
-          report-title: Unit tests Linux - ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
+          report-title: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }} ${{ matrix.os }}
 
   pre-commit-checks:
     # TODO: switch to pixi once there is a good way
