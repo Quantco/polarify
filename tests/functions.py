@@ -174,6 +174,11 @@ def two_if_expr(x):
     return a + b
 
 
+def multiple_equals(x):
+    a = b = 1
+    return x + a + b
+
+
 functions = [
     signum,
     early_return,
@@ -193,6 +198,7 @@ functions = [
     two_if_expr,
     signum_no_default,
     nested_partial_return_with_assignments,
+    multiple_equals,
 ]
 
 xfail_functions = [
