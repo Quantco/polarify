@@ -8,13 +8,9 @@ from dataclasses import dataclass
 # TODO: match ... case
 
 
-def build_polars_when_then_otherwise(
-    test: ast.expr, then: ast.expr, orelse: ast.expr
-) -> ast.Call:
+def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast.expr) -> ast.Call:
     when_node = ast.Call(
-        func=ast.Attribute(
-            value=ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()
-        ),
+        func=ast.Attribute(value=ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()),
         args=[test],
         keywords=[],
     )
@@ -60,9 +56,7 @@ class InlineTransformer(ast.NodeTransformer):
 
     def visit_Call(self, node: ast.Call) -> ast.Call:
         node.args = [self.visit(arg) for arg in node.args]
-        node.keywords = [
-            ast.keyword(arg=k.arg, value=self.visit(k.value)) for k in node.keywords
-        ]
+        node.keywords = [ast.keyword(arg=k.arg, value=self.visit(k.value)) for k in node.keywords]
         return node
 
     def visit_IfExp(self, node: ast.IfExp) -> ast.Call:
@@ -107,9 +101,7 @@ class UnresolvedState:
                         )
                     assert len(t.elts) == len(stmt.value.elts)
                     for sub_t, sub_v in zip(t.elts, stmt.value.elts):
-                        diff = _handle_assign(
-                            ast.Assign(targets=[sub_t], value=sub_v), assignments
-                        )
+                        diff = _handle_assign(ast.Assign(targets=[sub_t], value=sub_v), assignments)
                         assignments.update(diff)
                 else:
                     raise ValueError(
@@ -196,9 +188,7 @@ def is_returning_body(stmts: list[ast.stmt]) -> bool:
     return False
 
 
-def parse_body(
-    full_body: list[ast.stmt], assignments: dict[str, ast.expr] | None = None
-) -> State:
+def parse_body(full_body: list[ast.stmt], assignments: dict[str, ast.expr] | None = None) -> State:
     if assignments is None:
         assignments = {}
     state = State(UnresolvedState(assignments))
