@@ -42,7 +42,7 @@ jobs:
         uses: pavelzw/pytest-action@342008861c5f93d3689ebf656acb26170b3ff161
         with:
           custom-pytest: pixi run pytest
-          report-title: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}s
+          report-title: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
 
   pre-commit-checks:
     # TODO: switch to pixi once there is a good way
