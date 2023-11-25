@@ -19,10 +19,7 @@ pl_version = Version(_pl_version)
 @pytest.fixture(
     scope="module",
     params=functions
-    + [
-        pytest.param(f, marks=pytest.mark.xfail(reason="not implemented"))
-        for f in xfail_functions
-    ],
+    + [pytest.param(f, marks=pytest.mark.xfail(reason="not implemented")) for f in xfail_functions],
 )
 def test_funcs(request):
     original_func = request.param
@@ -30,10 +27,7 @@ def test_funcs(request):
     original_func_unparsed = inspect.getsource(original_func)
     # build ast from transformed function as format as string
     transformed_func_unparsed = transform_func_to_new_source(original_func)
-    print(
-        f"Original:\n{original_func_unparsed}\n"
-        f"Transformed:\n{transformed_func_unparsed}"
-    )
+    print(f"Original:\n{original_func_unparsed}\n" f"Transformed:\n{transformed_func_unparsed}")
     return transformed_func, original_func
 
 

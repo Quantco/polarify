@@ -32,18 +32,6 @@ include = [
     "/polarify",
 ]
 
-[tool.black]
-target-version = ["py39"]
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.venv
-  | build
-  | dist
-)/
-'''
-
 [tool.ruff]
 line-length = 100
 target-version = "py39"
@@ -74,6 +62,15 @@ select = [
     # pyupgrade
     "UP"
 ]
+ignore = [
+    # may cause conflicts with ruff formatter
+    "E501",
+    "W191"
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
 python_version = "3.9"
