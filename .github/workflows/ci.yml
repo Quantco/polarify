@@ -39,7 +39,7 @@ jobs:
           pixi install
           pixi run postinstall
       - name: Run unittests
-        uses: pavelzw/pytest-action@342008861c5f93d3689ebf656acb26170b3ff161
+        uses: pavelzw/pytest-action@dbdc78bd844ba2edddb5843d87991abe8157d5cb
         with:
           custom-pytest: pixi run pytest
           report-title: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
