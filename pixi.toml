@@ -7,11 +7,6 @@ authors = ["Bela Stoyan <bela.stoyan@quantco.com>", "Pavel Zwerschke <pavel.zwer
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
-# TODO: remove https://github.com/prefix-dev/pixi/issues/733
-# [tasks]
-# test = "pytest"
-# postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
-
 [dependencies]
 python = ">=3.9"
 pip = "*"
@@ -40,16 +35,18 @@ polars = "0.19.*"
 [feature.pl020.dependencies]
 polars = "0.20.*"
 
+[feature.build.dependencies]
+hatchling = "*"
+[feature.build.tasks]
+postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
+
 [feature.test.dependencies]
 pytest = "*"
 pytest-md = "*"
 pytest-emoji = "*"
 hypothesis = "*"
-# not strictly necessary for testing but needed for running postinstall
-hatchling = "*"
 [feature.test.tasks]
 test = "pytest"
-postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
 
 [feature.lint.dependencies]
 pre-commit = "*"
@@ -58,14 +55,14 @@ lint = "pre-commit run --all"
 # mypy = "mypy --install-types --non-interactive polarify"
 
 [environments]
-pl014 = ["pl014", "py39", "test"]
-pl015 = ["pl015", "py39", "test"]
-pl016 = ["pl016", "py39", "test"]
-pl017 = ["pl017", "py39", "test"]
-pl018 = ["pl018", "py39", "test"]
-pl019 = ["pl019", "py39", "test"]
-pl020 = ["pl020", "py39", "test"]
-py39 = ["py39", "test"]
-py310 = ["py310", "test"]
-py311 = ["py311", "test"]
-py312 = ["py312", "test"]
+pl014 = ["pl014", "py39", "test", "build"]
+pl015 = ["pl015", "py39", "test", "build"]
+pl016 = ["pl016", "py39", "test", "build"]
+pl017 = ["pl017", "py39", "test", "build"]
+pl018 = ["pl018", "py39", "test", "build"]
+pl019 = ["pl019", "py39", "test", "build"]
+pl020 = ["pl020", "py39", "test", "build"]
+py39 = ["py39", "test", "build"]
+py310 = ["py310", "test", "build"]
+py311 = ["py311", "test", "build"]
+py312 = ["py312", "test", "build"]
