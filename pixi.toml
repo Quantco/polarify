@@ -24,6 +24,12 @@ python = "3.10.*"
 python = "3.11.*"
 [feature.py312.dependencies]
 python = "3.12.*"
+[feature.pl014.dependencies]
+polars = "0.14.*"
+[feature.pl015.dependencies]
+polars = "0.15.*"
+[feature.pl016.dependencies]
+polars = "0.16.*"
 [feature.pl017.dependencies]
 polars = "0.17.*"
 [feature.pl018.dependencies]
@@ -52,6 +58,9 @@ lint = "pre-commit run --all"
 # mypy = "mypy --install-types --non-interactive polarify"
 
 [environments]
+pl014 = ["pl014", "py39", "test"]
+pl015 = ["pl015", "py39", "test"]
+pl016 = ["pl016", "py39", "test"]
 pl017 = ["pl017", "py39", "test"]
 pl018 = ["pl018", "py39", "test"]
 pl019 = ["pl019", "py39", "test"]
