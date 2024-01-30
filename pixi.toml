@@ -7,11 +7,6 @@ authors = ["Bela Stoyan <bela.stoyan@quantco.com>", "Pavel Zwerschke <pavel.zwer
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
-[tasks]
-postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
-test = "pytest"
-lint = "pre-commit run --all"
-
 [dependencies]
 python = ">=3.9"
 pip = "*"
@@ -39,13 +34,17 @@ pytest = "*"
 pytest-md = "*"
 pytest-emoji = "*"
 hypothesis = "*"
+# not strictly necessary for testing but needed for running postinstall
+hatchling = "*"
 [feature.test.tasks]
 test = "pytest"
+postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
 
 [feature.lint.dependencies]
 pre-commit = "*"
 [feature.lint.tasks]
 lint = "pre-commit run --all"
+# mypy = "mypy --install-types --non-interactive polarify"
 
 [environments]
 pl017 = ["pl017", "py39", "test"]
