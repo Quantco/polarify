@@ -51,8 +51,8 @@ jobs:
           # cat `which pixi`
       - name: Install dependencies
         run: |
-          pixi run --env ${{ matrix.env }} postinstall
-          pixi run --env ${{ matrix.env }} pytest
+          pixi run -e ${{ matrix.env }} postinstall
+          pixi run -e ${{ matrix.env }} pytest
       # - name: Run unittests
       #   uses: pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507
       #   with:
