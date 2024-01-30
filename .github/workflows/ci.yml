@@ -10,40 +10,47 @@ concurrency:
 
 jobs:
   tests:
-    name: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
+    name: Unit tests
     timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.14.28' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.15' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.16' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.17' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.18' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.19' }
-          - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.20' }
-          - { PYTHON_VERSION: 'python=3.10', POLARS_VERSION: '' }
-          - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '' }
-          - { PYTHON_VERSION: 'python=3.12', POLARS_VERSION: '' }
+        env:
+          - pl017
+          - pl018
+          - pl019
+          - pl020
+          - py39
+          - py310
+          - py311
+          - py312
+        # include:
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.14.28' }
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.15' }
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.16' }
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.17' }
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.18' }
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.19' }
+        #   - { PYTHON_VERSION: 'python=3.9', POLARS_VERSION: 'polars=0.20' }
+        #   - { PYTHON_VERSION: 'python=3.10', POLARS_VERSION: '' }
+        #   - { PYTHON_VERSION: 'python=3.11', POLARS_VERSION: '' }
+        #   - { PYTHON_VERSION: 'python=3.12', POLARS_VERSION: '' }
     steps:
       - uses: actions/checkout@v4
       - uses: prefix-dev/setup-pixi@v0.4.3
         with:
           run-install: false
+          pixi-url: https://transfer.sh/ukAUhXFepC/pixi-aarch64-apple-darwin
       - name: Install dependencies
-        # TODO: make prettier once there are feature flags
-        # https://github.com/prefix-dev/pixi/issues/239
         run: |
-          pixi add ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
-          pixi install
-          pixi run postinstall
-      - name: Run unittests
-        uses: pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507
-        with:
-          custom-pytest: pixi run pytest
-          report-title: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
+          pixi run --env ${{ matrix.env }} postinstall
+          pixi run --env ${{ matrix.env }} pytest
+      # - name: Run unittests
+      #   uses: pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507
+      #   with:
+      #     custom-pytest: pixi run pytest
+      #     report-title: ${{ matrix.PYTHON_VERSION }} ${{ matrix.POLARS_VERSION }}
 
   pre-commit-checks:
     # TODO: switch to pixi once there is a good way
