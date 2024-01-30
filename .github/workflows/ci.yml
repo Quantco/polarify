@@ -30,10 +30,10 @@ jobs:
           - py312
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@pixi-list
+      - uses: prefix-dev/setup-pixi@multi-envs
         with:
-          run-install: false
-          pixi-url: https://transfer.sh/CHIOzpbjOE/pixi-x86_64-unknown-linux-musl%203
+          pixi-url: https://transfer.sh/gepDoTa9X6/pixi-x86_64-unknown-linux-musl%204
+          environments: ${{ matrix.env }}
       - name: Install repository
         run: |
           pixi run -e ${{ matrix.env }} postinstall
