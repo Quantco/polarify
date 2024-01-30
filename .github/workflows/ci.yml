@@ -33,7 +33,7 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.4.3
         with:
           run-install: false
-          pixi-url: https://transfer.sh/ztAiFMeVCL/pixi-x86_64-unknown-linux-musl%202
+          pixi-url: https://transfer.sh/CHIOzpbjOE/pixi-x86_64-unknown-linux-musl%203
       - name: Install repository
         run: |
           pixi run -e ${{ matrix.env }} postinstall
