@@ -30,7 +30,7 @@ jobs:
           - py312
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.4.3
+      - uses: prefix-dev/setup-pixi@pixi-list
         with:
           run-install: false
           pixi-url: https://transfer.sh/CHIOzpbjOE/pixi-x86_64-unknown-linux-musl%203
