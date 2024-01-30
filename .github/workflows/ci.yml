@@ -42,6 +42,11 @@ jobs:
         with:
           run-install: false
           pixi-url: https://transfer.sh/ukAUhXFepC/pixi-aarch64-apple-darwin
+      - run: |
+          set +e
+          set -x
+          which pixi
+          cat `which pixi`
       - name: Install dependencies
         run: |
           pixi run --env ${{ matrix.env }} postinstall
