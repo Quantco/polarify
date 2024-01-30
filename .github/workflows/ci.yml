@@ -42,7 +42,8 @@ jobs:
         with:
           run-install: false
           pixi-url: https://transfer.sh/ukAUhXFepC/pixi-aarch64-apple-darwin
-      - run: |
+      - if: always()
+        run: |
           set +e
           set -x
           which pixi
