@@ -41,13 +41,14 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.4.3
         with:
           run-install: false
-          pixi-url: https://transfer.sh/ukAUhXFepC/pixi-aarch64-apple-darwin
+          pixi-url: https://transfer.sh/ztAiFMeVCL/pixi-x86_64-unknown-linux-musl%202
       - if: always()
         run: |
           set +e
           set -x
           which pixi
-          cat `which pixi`
+          ls -l `which pixi`
+          # cat `which pixi`
       - name: Install dependencies
         run: |
           pixi run --env ${{ matrix.env }} postinstall
