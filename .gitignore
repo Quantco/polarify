@@ -1,7 +1,6 @@
-# Explicitly unignore hidden files (except for .git/) for ripgrep. Individual folders can still
+# Explicitly unignore hidden files for ripgrep. Individual folders can still
 # be ignored in the blocks below.
 !.*
-.git/
 
 # NOTE: The block below is NOT copied sic from https://www.toptal.com/developers/gitignore.
 # Instead, it contains some customizations that should be taken into account when adjusting the
@@ -259,7 +258,6 @@ ipython_config.py
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 .pixi
-pixi.lock
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
