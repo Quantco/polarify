@@ -47,8 +47,10 @@ pytest = "*"
 pytest-md = "*"
 pytest-emoji = "*"
 hypothesis = "*"
+pytest-cov = "*"
 [feature.test.tasks]
 test = "pytest"
+coverage = "pytest --cov=polarify --cov-report=xml"
 
 [feature.lint.dependencies]
 pre-commit = "*"
