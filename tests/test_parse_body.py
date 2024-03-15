@@ -21,7 +21,7 @@ pl_version = Version(_pl_version)
     params=functions
     + [pytest.param(f, marks=pytest.mark.xfail(reason="not implemented")) for f in xfail_functions],
 )
-def test_funcs(request):
+def funcs(request):
     original_func = request.param
     transformed_func = polarify(original_func)
     original_func_unparsed = inspect.getsource(original_func)
@@ -41,9 +41,9 @@ def test_funcs(request):
         chunked=False if pl_version < Version("0.18.1") else None,
     )
 )
-def test_transform_function(df: polars.DataFrame, test_funcs):
+def test_transform_function(df: polars.DataFrame, funcs):
     x = polars.col("x")
-    transformed_func, original_func = test_funcs
+    transformed_func, original_func = funcs
 
     if pl_version < Version("0.19.0"):
         df_with_transformed_func = df.select(transformed_func(x).alias("apply"))
