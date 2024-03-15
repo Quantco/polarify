@@ -82,7 +82,7 @@ class InlineTransformer(ast.NodeTransformer):
 @dataclass
 class UnresolvedState:
     """
-    When a execution flow is not finished (i.e., not returned) in a function, we need to keep track
+    When an execution flow is not finished (i.e., not returned) in a function, we need to keep track
     of the assignments.
     """
 
@@ -101,8 +101,7 @@ class UnresolvedState:
                         )
                     assert len(t.elts) == len(stmt.value.elts)
                     for sub_t, sub_v in zip(t.elts, stmt.value.elts):
-                        diff = _handle_assign(ast.Assign(targets=[sub_t], value=sub_v), assignments)
-                        assignments.update(diff)
+                        _handle_assign(ast.Assign(targets=[sub_t], value=sub_v), assignments)
                 else:
                     raise ValueError(
                         f"Unsupported expression type inside assignment target: {type(t)}"
@@ -140,7 +139,10 @@ class State:
 
     node: UnresolvedState | ReturnState | ConditionalState
 
-    def handle_assign(self, expr: ast.Assign):
+    def handle_assign(self, expr: ast.Assign | ast.AnnAssign):
+        if isinstance(expr, ast.AnnAssign):
+            expr = ast.Assign(targets=[expr.target], value=expr.value)
+
         if isinstance(self.node, UnresolvedState):
             self.node.handle_assign(expr)
         elif isinstance(self.node, ConditionalState):
@@ -167,33 +169,13 @@ class State:
             self.node.then.handle_return(value)
             self.node.orelse.handle_return(value)
 
-    def check_all_branches_return(self):
-        if isinstance(self.node, UnresolvedState):
-            return False
-        elif isinstance(self.node, ReturnState):
-            return True
-        else:
-            return (
-                self.node.then.check_all_branches_return()
-                and self.node.orelse.check_all_branches_return()
-            )
-
-
-def is_returning_body(stmts: list[ast.stmt]) -> bool:
-    for s in stmts:
-        if isinstance(s, ast.Return):
-            return True
-        elif isinstance(s, ast.If):
-            return bool(is_returning_body(s.body) and is_returning_body(s.orelse))
-    return False
-
 
 def parse_body(full_body: list[ast.stmt], assignments: dict[str, ast.expr] | None = None) -> State:
     if assignments is None:
         assignments = {}
     state = State(UnresolvedState(assignments))
     for stmt in full_body:
-        if isinstance(stmt, ast.Assign):
+        if isinstance(stmt, (ast.Assign, ast.AnnAssign)):
             state.handle_assign(stmt)
         elif isinstance(stmt, ast.If):
             state.handle_if(stmt)
