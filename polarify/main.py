@@ -241,26 +241,3 @@ def transform_tree_into_expr(node: State) -> ast.expr:
         )
     else:
         raise ValueError("Not all branches return")
-
-def transform_func_to_new_source(func) -> str:
-    source = inspect.getsource(func)
-    tree = ast.parse(source)
-
-    func_def: ast.FunctionDef = tree.body[0]  # type: ignore
-    root_node = parse_body(func_def.body)
-
-    expr = transform_tree_into_expr(root_node)
-
-    # Replace the body of the function with the parsed expr
-    # Also import polars as pl since this is used in the generated code
-    # We don't want to rely on the user having imported polars as pl
-    func_def.body = [
-        ast.Import(names=[ast.alias(name="polars", asname="pl")]),
-        ast.Return(value=expr),
-    ]
-    # TODO: make this prettier
-    func_def.decorator_list = []
-    func_def.name += "_polarified"
-
-    # Unparse the modified AST back into source code
-    return ast.unparse(tree)
