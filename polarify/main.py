@@ -3,7 +3,6 @@ from __future__ import annotations
 import ast
 from copy import copy, deepcopy
 from dataclasses import dataclass
-import inspect
 
 # TODO: make walrus throw ValueError
 # TODO: match ... case
