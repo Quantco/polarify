@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 from copy import copy, deepcopy
 from dataclasses import dataclass
+import inspect
 
 # TODO: make walrus throw ValueError
 # TODO: match ... case
@@ -26,7 +27,6 @@ def build_polars_when_then_otherwise(test: ast.expr, then: ast.expr, orelse: ast
         keywords=[],
     )
     return final_node
-
 
 # ruff: noqa: N802
 class InlineTransformer(ast.NodeTransformer):
@@ -82,7 +82,7 @@ class InlineTransformer(ast.NodeTransformer):
 @dataclass
 class UnresolvedState:
     """
-    When a execution flow is not finished (i.e., not returned) in a function, we need to keep track
+    When an execution flow is not finished (i.e., not returned) in a function, we need to keep track
     of the assignments.
     """
 
@@ -166,6 +166,28 @@ class State:
         elif isinstance(self.node, ConditionalState):
             self.node.then.handle_return(value)
             self.node.orelse.handle_return(value)
+    
+    def handle_match(self, stmt: ast.Match):
+        if isinstance(self.node, UnresolvedState):
+            self.node = ConditionalState(
+                test=InlineTransformer.inline_expr(
+                    ast.Compare(
+                    left=ast.Name(id=stmt.subject.id, ctx=ast.Load()),
+                    ops=[ast.Eq()],
+                    comparators=[stmt.cases[0].pattern.value]
+                ), self.node.assignments),
+                then=parse_body([
+                    stmt.cases[0].body[0]
+                ], copy(self.node.assignments)),
+                orelse=parse_body(
+                    [ast.Match(subject=stmt.subject, cases=stmt.cases[1:])]
+                    if len(stmt.cases) > 1 else 
+                    []
+                , copy(self.node.assignments)),
+            )
+        elif isinstance(self.node, ConditionalState):
+            self.node.then.handle_match(stmt)
+            self.node.orelse.handle_match(stmt)
 
     def check_all_branches_return(self):
         if isinstance(self.node, UnresolvedState):
@@ -200,9 +222,10 @@ def parse_body(full_body: list[ast.stmt], assignments: dict[str, ast.expr] | Non
         elif isinstance(stmt, ast.Return):
             if stmt.value is None:
                 raise ValueError("return needs a value")
-
             state.handle_return(stmt.value)
             break
+        elif isinstance(stmt, ast.Match):
+            state.handle_match(stmt)
         else:
             raise ValueError(f"Unsupported statement type: {type(stmt)}")
     return state
@@ -219,3 +242,26 @@ def transform_tree_into_expr(node: State) -> ast.expr:
         )
     else:
         raise ValueError("Not all branches return")
+
+def transform_func_to_new_source(func) -> str:
+    source = inspect.getsource(func)
+    tree = ast.parse(source)
+
+    func_def: ast.FunctionDef = tree.body[0]  # type: ignore
+    root_node = parse_body(func_def.body)
+
+    expr = transform_tree_into_expr(root_node)
+
+    # Replace the body of the function with the parsed expr
+    # Also import polars as pl since this is used in the generated code
+    # We don't want to rely on the user having imported polars as pl
+    func_def.body = [
+        ast.Import(names=[ast.alias(name="polars", asname="pl")]),
+        ast.Return(value=expr),
+    ]
+    # TODO: make this prettier
+    func_def.decorator_list = []
+    func_def.name += "_polarified"
+
+    # Unparse the modified AST back into source code
+    return ast.unparse(tree)
