@@ -48,6 +48,8 @@ pytest-md = "*"
 pytest-emoji = "*"
 hypothesis = "*"
 pytest-cov = "*"
+[feature.test.target.unix.dependencies]
+pixi-pycharm = "*"
 [feature.test.tasks]
 test = "pytest"
 coverage = "pytest --cov=polarify --cov-report=xml"
