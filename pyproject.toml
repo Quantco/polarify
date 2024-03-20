@@ -72,8 +72,3 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-
-[tool.mypy]
-python_version = "3.9"
-no_implicit_optional = true
-check_untyped_defs = true
