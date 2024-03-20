@@ -7,7 +7,7 @@ name = "polarify"
 description = "Simplifying conditional Polars Expressions with Python 🐍 🐻‍❄️"
 version = "0.1.5"
 readme = "README.md"
-license = "MIT"
+license = {file = "LICENSE"}
 requires-python = ">=3.9"
 authors = [
     { name = "Bela Stoyan", email = "bela.stoyan@quantco.com" },
@@ -36,6 +36,7 @@ include = [
 line-length = 100
 target-version = "py39"
 
+[tool.ruff.lint]
 select = [
     # pyflakes
     "F",
@@ -74,6 +75,5 @@ indent-style = "space"
 
 [tool.mypy]
 python_version = "3.9"
-ignore_missing_imports = true
 no_implicit_optional = true
 check_untyped_defs = true
