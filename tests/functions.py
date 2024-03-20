@@ -137,6 +137,71 @@ def walrus_expr(x):
     return s * y
 
 
+def return_nothing(x):
+    if x > 0:
+        return
+    else:
+        return 1
+
+
+def no_return(x):
+    s = x
+
+
+def return_end(x):
+    s = x
+    return
+
+
+def annotated_assign(x):
+    s: int = 15
+    return s + x
+
+
+def conditional_assign(x):
+    s = 1
+    if x > 0:
+        s = 2
+    b = 3
+    return b
+
+
+def return_constant(x):
+    return 1
+
+
+def return_constant_2(x):
+    return 1 + 2
+
+
+def return_unconditional_constant(x):
+    if x > 0:
+        s = 1
+    else:
+        s = 2
+    return 1
+  
+
+def return_constant_additional_assignments(x):
+    s = 2
+    return 1
+
+
+def return_conditional_constant(x):
+    if x > 0:
+        return 1
+    return 0
+
+
+def multiple_if(x):
+    s = 1
+    if x > 0:
+        s = 2
+    if x > 1:
+        s = 3
+    return s
+
+
 def multiple_if_else(x):
     if x > 0:
         s = 1
@@ -232,6 +297,16 @@ def multiple_equals(x):
     return x + a + b
 
 
+def tuple_assignments(x):
+    a, b = 1, x
+    return x + a + b
+
+
+def list_assignments(x):
+    [a, b] = 1, x
+    return x + a + b
+
+
 functions = [
     signum,
     early_return,
@@ -252,6 +327,13 @@ functions = [
     signum_no_default,
     nested_partial_return_with_assignments,
     multiple_equals,
+    tuple_assignments,
+    list_assignments,
+    annotated_assign,
+    conditional_assign,
+    multiple_if,
+    return_unconditional_constant,
+    return_conditional_constant,
     nested_match,
     match_assignments_inside_branch,
     match_signum,
@@ -261,10 +343,17 @@ functions = [
 
 xfail_functions = [
     walrus_expr,
+    # our test setup does not work with literal expressions
+    return_constant,
+    return_constant_2,
+    return_constant_additional_assignments,
 ]
 
 unsupported_functions = [
     # function, match string in error message
     (chained_compare_expr, "Polars can't handle chained comparisons"),
     (bool_op, "ast.BoolOp"),  # TODO: make error message more specific
+    (return_end, "return needs a value"),
+    (no_return, "Not all branches return"),
+    (return_nothing, "return needs a value"),
 ]

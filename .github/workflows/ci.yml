@@ -39,8 +39,14 @@ jobs:
       - name: Run unittests
         uses: pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507
         with:
-          custom-pytest: pixi run -e ${{ matrix.env }} pytest
+          custom-pytest: pixi run -e ${{ matrix.env }} coverage
           report-title: ${{ matrix.env }}
+      - name: Upload coverage reports to Codecov
+        if: matrix.env == 'py312'
+        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
 
   pre-commit-checks:
     # TODO: switch to pixi once there is a good way
