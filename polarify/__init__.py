@@ -20,7 +20,7 @@ def transform_func_to_new_source(func) -> str:
     func_def: ast.FunctionDef = tree.body[0]  # type: ignore
     root_node = parse_body(func_def.body)
 
-    expr = transform_tree_into_expr(root_node)
+    expr = transform_tree_into_expr([root_node])
 
     # Replace the body of the function with the parsed expr
     # Also import polars as pl since this is used in the generated code

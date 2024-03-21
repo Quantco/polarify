@@ -306,6 +306,26 @@ def list_assignments(x):
     [a, b] = 1, x
     return x + a + b
 
+def match_case(x):
+    s = 0
+    match x:
+        case 0:
+            s = 1
+        case 2:
+            s = -1
+        case _:
+            s = 0
+    return s
+
+def match_with_or(x):
+    match x:
+        case 0 | 1:
+            return 0
+        case 2:
+            return 2 * x
+        case 3:
+            return 3 * x
+    return x
 
 functions = [
     signum,
@@ -339,6 +359,8 @@ functions = [
     match_signum,
     match_nested_partial_return_with_assignments,
     match_compare_expr,
+    match_case,
+    match_with_or,
 ]
 
 xfail_functions = [
