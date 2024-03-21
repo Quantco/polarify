@@ -20,7 +20,7 @@ def transform_func_to_new_source(func) -> str:
     func_def: ast.FunctionDef = tree.body[0]  # type: ignore
     root_node = parse_body(func_def.body)
 
-    expr = transform_tree_into_expr([root_node])
+    expr = transform_tree_into_expr(root_node)
 
     # Replace the body of the function with the parsed expr
     # Also import polars as pl since this is used in the generated code
@@ -51,3 +51,15 @@ def polarify(func):
         return new_func(*args, **kwargs)
 
     return wrapper
+
+# def func(x):
+#     match x:
+#         case 0, 1, *other:
+#             return other
+#         case 2:
+#             return 2 * x
+#         case 3:
+#             return 3 * x
+#     return x
+
+# print(transform_func_to_new_source(func))
