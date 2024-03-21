@@ -51,15 +51,3 @@ def polarify(func):
         return new_func(*args, **kwargs)
 
     return wrapper
-
-# def func(x):
-#     match x:
-#         case 0, 1, *other:
-#             return other
-#         case 2:
-#             return 2 * x
-#         case 3:
-#             return 3 * x
-#     return x
-
-# print(transform_func_to_new_source(func))
