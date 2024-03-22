@@ -111,6 +111,22 @@ def match_sequence_star(x):
             return 2
     return x
 
+def match_multiple_variables(x):
+    y = 3
+    match x, y:
+        case 1, 3:
+            return 1
+        case _:
+            return 5
+        
+def match_with_guard(x):
+    match x:
+        case y if y > 5:
+            return 1
+        case _:
+            return 5
+    
+
 
 functions_310 = [
     nested_match,
@@ -122,6 +138,8 @@ functions_310 = [
     match_with_or,
     match_sequence,
     match_sequence_with_brackets,
+    match_multiple_variables,
+    match_with_guard,
 ]
 
 

@@ -7,15 +7,20 @@ from dataclasses import dataclass
 from typing import Sequence, Tuple
 
 
-PY_39 = (sys.version_info <= (3, 9))
+PY_39 = sys.version_info <= (3, 9)
 
 # TODO: make walrus throw ValueError
+
 
 def build_polars_when_then_otherwise(body: Sequence[Tuple[ast.Expr, ast.Expr]], orelse: ast.expr) -> ast.Call:
     nodes = []
     for test, then in body:
         when_node = ast.Call(
-            func=ast.Attribute(value=nodes[-1] if len(nodes) else ast.Name(id="pl", ctx=ast.Load()), attr="when", ctx=ast.Load()),
+            func=ast.Attribute(
+                value=nodes[-1] if len(nodes) else ast.Name(id="pl", ctx=ast.Load()),
+                attr="when",
+                ctx=ast.Load(),
+            ),
             args=[test],
             keywords=[],
         )
@@ -92,9 +97,9 @@ class InlineTransformer(ast.NodeTransformer):
         return node
     
     def visit_Slice(self, node: ast.Slice) -> ast.Any:
-        if (node.lower):
+        if node.lower:
             node.lower = self.visit(node.lower)
-        if(node.upper):
+        if node.upper:
             node.upper = self.visit(node.upper)
         return node
     
@@ -161,10 +166,10 @@ class State:
 
     node: UnresolvedState | ReturnState | ConditionalState
 
-    def translate_match(self, subj, stmt: ast.MatchValue | ast.MatchOr):              
+    def translate_match(self, subj, stmt: ast.MatchValue | ast.MatchOr | ast.MatchSequence):
         if isinstance(stmt, ast.MatchValue):
             return ast.Compare(
-                left=ast.Name(id=subj, ctx=ast.Load()),
+                left=ast.Name(id=subj.id, ctx=ast.Load()),
                 ops=[ast.Eq()],
                 comparators=[stmt.value],
             )
@@ -172,22 +177,49 @@ class State:
             return ast.BinOp(
                 left=self.translate_match(subj, stmt.patterns[0]),
                 op=ast.BitOr(),
-                right=self.translate_match(subj, ast.MatchOr(patterns=stmt.patterns[1:])) if len(stmt.patterns) > 2 else self.translate_match(subj, stmt.patterns[1]),
+                right=(
+                    self.translate_match(subj, ast.MatchOr(patterns=stmt.patterns[1:]))
+                    if len(stmt.patterns) > 2
+                    else self.translate_match(subj, stmt.patterns[1])
+                ),
             )
         elif isinstance(stmt, ast.MatchSequence):
-            left = ast.Name(id=subj, ctx=ast.Load())
+            # left = ast.Name(id=subj.id, ctx=ast.Load())
             if isinstance(stmt.patterns[-1], ast.MatchStar):
                 raise ValueError("starred patterns are not supported")
-                # self.node.assignments[stmt.patterns[-1].name] = ast.Subscript(value=ast.Name(id=subj, ctx=ast.Load()), slice=ast.Slice(lower=ast.Constant(value=len(stmt.patterns) - 1)))
-                # left = ast.Subscript(value=ast.Name(id=subj, ctx=ast.Load()), slice=ast.Slice(upper=ast.Constant(value=len(stmt.patterns) - 1)))
+                # self.node.assignments[stmt.patterns[-1].name] = ast.Subscript(value=ast.Name(id=subj.id, ctx=ast.Load()), slice=ast.Slice(lower=ast.Constant(value=len(stmt.patterns) - 1)))
+                # left = ast.Subscript(value=ast.Name(id=subj.id, ctx=ast.Load()), slice=ast.Slice(upper=ast.Constant(value=len(stmt.patterns) - 1)))
+            if isinstance(subj, ast.Tuple):
+                return ast.BinOp(
+                    left=self.translate_match(subj.elts[0], stmt.patterns[0]),
+                    op=ast.BitAnd(),
+                    right=(
+                        self.translate_match(
+                            Tuple(subj.elts[1:]),
+                            ast.MatchSequence(patterns=stmt.patterns[1:]),
+                        )
+                        if len(stmt.patterns) > 2
+                        else self.translate_match(subj.elts[1], stmt.patterns[1])
+                    ),
+                )
             return ast.Compare(
-                left=left,
+                left=ast.Name(id=subj.id, ctx=ast.Load()),
                 ops=[ast.Eq()],
-                comparators=[ast.List(elts=[stmt.patterns[i] for i in range(len(stmt.patterns) - isinstance(stmt.patterns[-1], ast.MatchStar))])],
+                comparators=[
+                    ast.List(
+                        elts=[
+                            stmt.patterns[i]
+                            for i in range(
+                                len(stmt.patterns)
+                                - isinstance(stmt.patterns[-1], ast.MatchStar)
+                            )
+                        ]
+                    )
+                ],
             )
         else:
             raise ValueError(f"Unsupported match type: {type(stmt)}")
-        
+
     def handle_assign(self, expr: ast.Assign | ast.AnnAssign):
         if isinstance(expr, ast.AnnAssign):
             expr = ast.Assign(targets=[expr.target], value=expr.value)
@@ -203,8 +235,10 @@ class State:
         if isinstance(self.node, UnresolvedState):
             self.node = ConditionalState(
                 body=[
-                    [InlineTransformer.inline_expr(stmt.test, self.node.assignments),
-                    parse_body(stmt.body, copy(self.node.assignments))]
+                    [
+                        InlineTransformer.inline_expr(stmt.test, self.node.assignments),
+                        parse_body(stmt.body, copy(self.node.assignments)),
+                    ]
                 ],
                 orelse=parse_body(stmt.orelse, copy(self.node.assignments)),
             )
@@ -222,26 +256,56 @@ class State:
             for i in range(len(self.node.body)):
                 self.node.body[i][1].handle_return(value)
             self.node.orelse.handle_return(value)
-    
+
     def handle_match(self, stmt: ast.Match):
         if isinstance(self.node, UnresolvedState):
+            try:
+                orelse = [
+                    stmt.cases[i].body
+                    for i in range(len(stmt.cases))
+                    if isinstance(stmt.cases[i].pattern, ast.MatchAs)
+                    and stmt.cases[i].pattern.name is None
+                ][0]
+            except:
+                orelse = []
+            for i in range(len(stmt.cases)):
+                if stmt.cases[i].guard is not None:
+                    self.handle_assign(
+                        ast.Assign(
+                            targets=[
+                                ast.Name(id=stmt.cases[i].pattern.name, ctx=ast.Store())
+                            ],
+                            value=stmt.subject,
+                        )
+                    )
             self.node = ConditionalState(
                 body=[
-                    [InlineTransformer.inline_expr(
-                        self.translate_match(stmt.subject.id, stmt.cases[i].pattern), self.node.assignments),
-                    parse_body([
-                        stmt.cases[i].body[0]
-                    ], copy(self.node.assignments))
-                    ] 
-                for i in range(len(stmt.cases))
+                    (  # type: ignore
+                        [
+                            InlineTransformer.inline_expr(
+                                self.translate_match(
+                                    stmt.subject, stmt.cases[i].pattern
+                                ),
+                                self.node.assignments,
+                            ),
+                            parse_body(stmt.cases[i].body, copy(self.node.assignments)),
+                        ]
+                        if stmt.cases[i].guard is None
+                        else [
+                            InlineTransformer.inline_expr(
+                                stmt.cases[i].guard, self.node.assignments
+                            ),
+                            parse_body(stmt.cases[i].body, copy(self.node.assignments)),
+                        ]
+                    )
+                    for i in range(len(stmt.cases))
                     if not isinstance(stmt.cases[i].pattern, ast.MatchAs)
+                    or stmt.cases[i].pattern.name is not None
                 ],
                 orelse=parse_body(
-                    [
-                        stmt.cases[i].body[0]
-                    for i in range(len(stmt.cases)) if isinstance(stmt.cases[i].pattern, ast.MatchAs)
-                    ]
-                , copy(self.node.assignments)),
+                    orelse,
+                    copy(self.node.assignments),
+                ),
             )
         elif isinstance(self.node, ConditionalState):
             for i in range(len(self.node.body)):
@@ -278,9 +342,8 @@ def transform_tree_into_expr(node: State) -> ast.expr:
     elif isinstance(node.node, ConditionalState):
         return build_polars_when_then_otherwise(
             [
-                [node.node.body[i][0],
-                transform_tree_into_expr(node.node.body[i][1])
-            ] for i in range(len(node.node.body))
+                [node.node.body[i][0], transform_tree_into_expr(node.node.body[i][1])]
+                for i in range(len(node.node.body))
             ],
             transform_tree_into_expr(node.node.orelse),
         )
