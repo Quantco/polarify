@@ -136,13 +136,13 @@ functions_310 = [
     match_compare_expr,
     match_case,
     match_with_or,
-    match_sequence,
-    match_sequence_with_brackets,
     match_multiple_variables,
     match_with_guard,
 ]
 
 
 unsupported_functions_310 = [
-    (match_sequence_star, "starred patterns are not supported"),
+    (match_sequence_star, "starred patterns are not supported."),
+    (match_sequence, "Matching lists is not supported yet."),
+    (match_sequence_with_brackets, "Matching lists is not supported yet."),
 ]

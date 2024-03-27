@@ -4,7 +4,7 @@ import ast
 import sys
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from typing import Sequence, Tuple
+from typing import Sequence
 
 
 PY_39 = sys.version_info <= (3, 9)
@@ -12,7 +12,7 @@ PY_39 = sys.version_info <= (3, 9)
 # TODO: make walrus throw ValueError
 
 
-def build_polars_when_then_otherwise(body: Sequence[Tuple[ast.Expr, ast.Expr]], orelse: ast.expr) -> ast.Call:
+def build_polars_when_then_otherwise(body: Sequence[tuple[ast.Expr, ast.Expr]], orelse: ast.expr) -> ast.Call:
     nodes = []
     for test, then in body:
         when_node = ast.Call(
@@ -153,7 +153,7 @@ class ConditionalState:
     A conditional state, with a test expression and two branches.
     """
 
-    body: Sequence[Tuple[ast.expr, State]]
+    body: Sequence[tuple[ast.expr, State]]
     orelse: State
 
 
@@ -184,39 +184,24 @@ class State:
                 ),
             )
         elif isinstance(stmt, ast.MatchSequence):
-            # left = ast.Name(id=subj.id, ctx=ast.Load())
             if isinstance(stmt.patterns[-1], ast.MatchStar):
-                raise ValueError("starred patterns are not supported")
-                # self.node.assignments[stmt.patterns[-1].name] = ast.Subscript(value=ast.Name(id=subj.id, ctx=ast.Load()), slice=ast.Slice(lower=ast.Constant(value=len(stmt.patterns) - 1)))
-                # left = ast.Subscript(value=ast.Name(id=subj.id, ctx=ast.Load()), slice=ast.Slice(upper=ast.Constant(value=len(stmt.patterns) - 1)))
+                raise ValueError("starred patterns are not supported.")
+            
             if isinstance(subj, ast.Tuple):
                 return ast.BinOp(
                     left=self.translate_match(subj.elts[0], stmt.patterns[0]),
                     op=ast.BitAnd(),
                     right=(
                         self.translate_match(
-                            Tuple(subj.elts[1:]),
+                            tuple(subj.elts[1:]),
                             ast.MatchSequence(patterns=stmt.patterns[1:]),
                         )
                         if len(stmt.patterns) > 2
                         else self.translate_match(subj.elts[1], stmt.patterns[1])
                     ),
                 )
-            return ast.Compare(
-                left=ast.Name(id=subj.id, ctx=ast.Load()),
-                ops=[ast.Eq()],
-                comparators=[
-                    ast.List(
-                        elts=[
-                            stmt.patterns[i]
-                            for i in range(
-                                len(stmt.patterns)
-                                - isinstance(stmt.patterns[-1], ast.MatchStar)
-                            )
-                        ]
-                    )
-                ],
-            )
+            
+            raise ValueError("Matching lists is not supported yet.")
         else:
             raise ValueError(f"Unsupported match type: {type(stmt)}")
 
