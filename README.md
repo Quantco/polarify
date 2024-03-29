@@ -212,10 +212,12 @@ polarIFy is still in an early stage of development and doesn't support the full 
 
 TODO: Add some benchmarks
 
-## 📥 Development installation
+## 📥 Development
+
+If you want to contribute to polarify, you can clone the repository and install the development dependencies using `pixi install`.
+You can test the code using `pixi run test`.
 
 ```bash
 pixi install
-pixi run postinstall
 pixi run test
 ```
