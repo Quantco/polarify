@@ -33,6 +33,7 @@ jobs:
       - uses: prefix-dev/setup-pixi@19b5e6071f70a82d3c5741d7b3f98a71d192eb20
         with:
           environments: ${{ matrix.env }}
+          manifest-path: pyproject.toml
       - name: Install repository
         run: |
           pixi run -e ${{ matrix.env }} postinstall
