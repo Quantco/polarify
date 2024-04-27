@@ -101,6 +101,7 @@ def match_signum(x):
             s = 0
     return s
 
+
 def match_sequence_star(x):
     match x:
         case 0, *other:
@@ -111,6 +112,7 @@ def match_sequence_star(x):
             return 2
     return x
 
+
 def match_multiple_variables(x):
     y = 3
     match x, y:
@@ -118,14 +120,33 @@ def match_multiple_variables(x):
             return 1
         case _:
             return 5
-        
+
+
 def match_with_guard(x):
+    match x:
+        case 5 if x > 3:
+            return 1
+        case _:
+            return 5
+
+
+def match_with_guard_variable(x):
     match x:
         case y if y > 5:
             return 1
         case _:
             return 5
-    
+        
+
+def match_with_guard_multiple_variable(x):
+    y = 3
+    match x, y:
+        case 1, z if z > 3:
+            return 1
+        case z, 3 if z > 3:
+            return 2
+        case _:
+            return 5
 
 
 functions_310 = [
@@ -138,11 +159,13 @@ functions_310 = [
     match_with_or,
     match_multiple_variables,
     match_with_guard,
+    match_with_guard_variable,
+    match_with_guard_multiple_variable,
 ]
 
 
 unsupported_functions_310 = [
     (match_sequence_star, "starred patterns are not supported."),
-    (match_sequence, "Matching lists is not supported yet."),
-    (match_sequence_with_brackets, "Matching lists is not supported yet."),
+    (match_sequence, "Matching lists is not supported."),
+    (match_sequence_with_brackets, "Matching lists is not supported."),
 ]
