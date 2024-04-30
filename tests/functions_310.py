@@ -1,3 +1,7 @@
+# ruff: noqa
+# ruff must not change the AST of the test functions, even if they are semantically equivalent.
+
+
 def match_case(x):
     s = 0
     match x:
@@ -105,7 +109,7 @@ def match_signum(x):
 def match_sequence_star(x):
     match x:
         case 0, *other:
-            return 0
+            return other
         case 1:
             return 1
         case 2:
@@ -136,7 +140,7 @@ def match_with_guard_variable(x):
             return 1
         case _:
             return 5
-        
+
 
 def match_with_guard_multiple_variable(x):
     y = 3
@@ -147,6 +151,16 @@ def match_with_guard_multiple_variable(x):
             return 2
         case _:
             return 5
+
+
+def match_sequence_incomplete(x):
+    y = 2
+    match x, y:
+        case 0, 1:
+            return 0
+        case 1:
+            return 1
+    return x
 
 
 functions_310 = [
@@ -168,4 +182,8 @@ unsupported_functions_310 = [
     (match_sequence_star, "starred patterns are not supported."),
     (match_sequence, "Matching lists is not supported."),
     (match_sequence_with_brackets, "Matching lists is not supported."),
+    (
+        match_sequence_incomplete,
+        "Incompatible match and subject types: <class 'ast.MatchValue'> and <class 'ast.Tuple'>",
+    ),
 ]
