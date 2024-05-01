@@ -30,7 +30,7 @@ jobs:
           - py312
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@19b5e6071f70a82d3c5741d7b3f98a71d192eb20
+      - uses: prefix-dev/setup-pixi@632d17935141ec801697e2c359784b878adecbbe
         with:
           environments: ${{ matrix.env }}
       - name: Install repository
@@ -43,7 +43,7 @@ jobs:
           report-title: ${{ matrix.env }}
       - name: Upload coverage reports to Codecov
         if: matrix.env == 'py312'
-        uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8
+        uses: codecov/codecov-action@5ecb98a3c6b747ed38dc09f787459979aebb39be
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
