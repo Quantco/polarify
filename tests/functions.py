@@ -267,11 +267,6 @@ def different_type_assignments(x):
     return x
 
 
-def unsupported_type_assignments(x):
-    [a, b] = 1, 2
-    return x
-
-
 def star_assignments(x):
     b, *a = [1, 2]
     return x
