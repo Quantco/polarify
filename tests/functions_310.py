@@ -155,12 +155,23 @@ def match_with_guard_multiple_variable(x):
 
 def match_sequence_incomplete(x):
     y = 2
-    match x, y:
-        case 0, 1:
+    z = 3
+    match x, y, z:
+        case 0, 1, 2:
             return 0
-        case 1:
+        case 1, 2:
             return 1
+        case 2:
+            return 2
     return x
+
+
+def match_mapping(x):
+    match x:
+        case {1: 2}:
+            return 1
+        case _:
+            return 2
 
 
 functions_310 = [
@@ -175,15 +186,15 @@ functions_310 = [
     match_with_guard,
     match_with_guard_variable,
     match_with_guard_multiple_variable,
+    match_sequence_incomplete,
 ]
 
+xfail_functions_310 = [
+    match_mapping,
+]
 
 unsupported_functions_310 = [
     (match_sequence_star, "starred patterns are not supported."),
     (match_sequence, "Matching lists is not supported."),
     (match_sequence_with_brackets, "Matching lists is not supported."),
-    (
-        match_sequence_incomplete,
-        "Incompatible match and subject types: <class 'ast.MatchValue'> and <class 'ast.Tuple'>",
-    ),
 ]

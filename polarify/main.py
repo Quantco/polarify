@@ -49,8 +49,7 @@ class ResolvedCase:
 def build_polars_when_then_otherwise(body: Sequence[ResolvedCase], orelse: ast.expr) -> ast.Call:
     nodes: list[ast.Call] = []
 
-    if not body:
-        raise ValueError("No cases provided")
+    assert body, "No when-then cases provided."
 
     for test, then in body:
         when_node = ast.Call(
@@ -210,6 +209,8 @@ class State:
                 ops=[ast.Eq()],
                 comparators=[stmt.value],
             )
+        elif isinstance(stmt, ast.MatchValue) and isinstance(subj, ast.Tuple):
+            return self.translate_match(subj, ast.MatchSequence(patterns=[stmt]))
         elif isinstance(stmt, ast.MatchAs) and isinstance(subj, ast.Name):
             if stmt.name is not None:
                 self.handle_assign(
@@ -232,23 +233,24 @@ class State:
         elif isinstance(stmt, ast.MatchSequence):
             if isinstance(stmt.patterns[-1], ast.MatchStar):
                 raise ValueError("starred patterns are not supported.")
-
             if isinstance(subj, ast.Tuple):
                 while len(subj.elts) > len(stmt.patterns):
                     stmt.patterns.append(ast.MatchValue(value=ast.Constant(value=None)))
                 left = self.translate_match(subj.elts[0], stmt.patterns[0], guard)
                 right = (
                     self.translate_match(
-                        subj.elts[1:],
+                        ast.Tuple(elts=subj.elts[1:]),
                         ast.MatchSequence(patterns=stmt.patterns[1:]),
                     )
                     if stmt.patterns[2:]
                     else self.translate_match(subj.elts[1], stmt.patterns[1])
                 )
 
-                if left is None or right is None:
-                    return left or right
-                return ast.BinOp(left=left, op=ast.BitAnd(), right=right)
+                return (
+                    left or right
+                    if left is None or right is None
+                    else ast.BinOp(left=left, op=ast.BitAnd(), right=right)
+                )
             raise ValueError("Matching lists is not supported.")
         else:
             raise ValueError(
