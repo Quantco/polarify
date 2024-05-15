@@ -321,6 +321,7 @@ xfail_functions = [
     return_constant_additional_assignments,
     different_type_assignments,
     star_assignments,
+    global_variable,
     *xfail_functions_310,
 ]
 
@@ -331,6 +332,5 @@ unsupported_functions = [
     (return_end, "return needs a value"),
     (no_return, "Not all branches return"),
     (return_nothing, "return needs a value"),
-    (global_variable, "Unsupported statement type: <class 'ast.Global'>"),
     *unsupported_functions_310,
 ]
