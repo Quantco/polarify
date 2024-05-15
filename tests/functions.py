@@ -7,6 +7,7 @@ if sys.version_info >= (3, 10):
 else:
     functions_310 = []
     unsupported_functions_310 = []
+    xfail_functions_310 = []
 
 
 def signum(x):
