@@ -174,6 +174,20 @@ def match_mapping(x):
             return 2
 
 
+def multiple_match(x):
+    match x:
+        case 0:
+            return 1
+        case 1:
+            return 2
+    match x:
+        case 0:
+            return 3
+        case 1:
+            return 4
+    return 5
+
+
 functions_310 = [
     nested_match,
     match_assignments_inside_branch,
@@ -187,6 +201,7 @@ functions_310 = [
     match_with_guard_variable,
     match_with_guard_multiple_variable,
     match_sequence_incomplete,
+    multiple_match,
 ]
 
 xfail_functions_310 = [
