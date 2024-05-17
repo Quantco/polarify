@@ -16,15 +16,15 @@ class UnresolvedCase:
     """
     An unresolved case in a conditional statement. (if, match, etc.)
     Each case consists of a test expression and a state.
-    The value of the then State is not yet resolved.
+    The value of the state is not yet resolved.
     """
 
     test: ast.expr
-    then: State
+    state: State
 
     def __init__(self, test: ast.expr, then: State):
         self.test = test
-        self.then = then
+        self.state = then
 
 
 @dataclass
@@ -32,18 +32,18 @@ class ResolvedCase:
     """
     A resolved case in a conditional statement. (if, match, etc.)
     Each case consists of a test expression and a state.
-    The value of the then State is resolved.
+    The value of the state is resolved.
     """
 
     test: ast.expr
-    then: ast.expr
+    state: ast.expr
 
     def __init__(self, test: ast.expr, then: ast.expr):
         self.test = test
-        self.then = then
+        self.state = then
 
     def __iter__(self):
-        return iter([self.test, self.then])
+        return iter([self.test, self.state])
 
 
 def build_polars_when_then_otherwise(body: Sequence[ResolvedCase], orelse: ast.expr) -> ast.Call:
@@ -189,61 +189,64 @@ class State:
     def translate_match(
         self,
         subj: ast.expr | Sequence[ast.expr] | ast.Tuple,
-        stmt: ast.pattern,
+        pattern: ast.pattern,
         guard: ast.expr | None = None,
     ):
-        if isinstance(stmt, ast.MatchValue) and isinstance(subj, ast.Name):
+        """
+        TODO: Explain the purpose and goal of this method, it's quite complex
+        """
+        if isinstance(pattern, ast.MatchValue) and isinstance(subj, ast.Name):
+            equality_ast = ast.Compare(
+                left=ast.Name(id=subj.id, ctx=ast.Load()),
+                ops=[ast.Eq()],
+                comparators=[pattern.value],
+            )
+
             if guard is not None:
                 return ast.BinOp(
                     left=guard,
                     op=ast.BitAnd(),
-                    right=ast.Compare(
-                        left=ast.Name(id=subj.id, ctx=ast.Load()),
-                        ops=[ast.Eq()],
-                        comparators=[stmt.value],
-                    ),
+                    right=equality_ast,
                 )
 
-            return ast.Compare(
-                left=ast.Name(id=subj.id, ctx=ast.Load()),
-                ops=[ast.Eq()],
-                comparators=[stmt.value],
-            )
-        elif isinstance(stmt, ast.MatchValue) and isinstance(subj, ast.Tuple):
-            return self.translate_match(subj, ast.MatchSequence(patterns=[stmt]))
-        elif isinstance(stmt, ast.MatchAs) and isinstance(subj, ast.Name):
-            if stmt.name is not None:
+            return equality_ast
+        elif isinstance(pattern, ast.MatchValue) and isinstance(subj, ast.Tuple):
+            return self.translate_match(subj, ast.MatchSequence(patterns=[pattern]))
+        elif isinstance(pattern, ast.MatchAs) and isinstance(subj, ast.Name):
+            if pattern.name is not None:
                 self.handle_assign(
                     ast.Assign(
-                        targets=[ast.Name(id=stmt.name, ctx=ast.Store())],
+                        targets=[ast.Name(id=pattern.name, ctx=ast.Store())],
                         value=ast.Name(id=subj.id, ctx=ast.Load()),
                     )
                 )
             return guard
-        elif isinstance(stmt, ast.MatchOr):
+        elif isinstance(pattern, ast.MatchOr):
             return ast.BinOp(
-                left=self.translate_match(subj, stmt.patterns[0], guard),
+                left=self.translate_match(subj, pattern.patterns[0], guard),
                 op=ast.BitOr(),
                 right=(
-                    self.translate_match(subj, ast.MatchOr(patterns=stmt.patterns[1:]))
-                    if stmt.patterns[2:]
-                    else self.translate_match(subj, stmt.patterns[1])
+                    self.translate_match(subj, ast.MatchOr(patterns=pattern.patterns[1:]))
+                    if pattern.patterns[2:]
+                    else self.translate_match(subj, pattern.patterns[1])
                 ),
             )
-        elif isinstance(stmt, ast.MatchSequence):
-            if isinstance(stmt.patterns[-1], ast.MatchStar):
+        elif isinstance(pattern, ast.MatchSequence):
+            if isinstance(pattern.patterns[-1], ast.MatchStar):
                 raise ValueError("starred patterns are not supported.")
             if isinstance(subj, ast.Tuple):
-                while len(subj.elts) > len(stmt.patterns):
-                    stmt.patterns.append(ast.MatchValue(value=ast.Constant(value=None)))
-                left = self.translate_match(subj.elts[0], stmt.patterns[0], guard)
+                while len(subj.elts) > len(pattern.patterns):
+                    pattern.patterns.append(ast.MatchValue(value=ast.Constant(value=None)))
+
+                # TODO: Use polars list operations in the future
+                left = self.translate_match(subj.elts[0], pattern.patterns[0], guard)
                 right = (
                     self.translate_match(
                         ast.Tuple(elts=subj.elts[1:]),
-                        ast.MatchSequence(patterns=stmt.patterns[1:]),
+                        ast.MatchSequence(patterns=pattern.patterns[1:]),
                     )
-                    if stmt.patterns[2:]
-                    else self.translate_match(subj.elts[1], stmt.patterns[1])
+                    if pattern.patterns[2:]
+                    else self.translate_match(subj.elts[1], pattern.patterns[1])
                 )
 
                 return (
@@ -254,7 +257,7 @@ class State:
             raise ValueError("Matching lists is not supported.")
         else:
             raise ValueError(
-                f"Incompatible match and subject types: {type(stmt)} and {type(subj)}."
+                f"Incompatible match and subject types: {type(pattern)} and {type(subj)}."
             )
 
     def handle_assign(self, expr: ast.Assign | ast.AnnAssign):
@@ -265,8 +268,7 @@ class State:
             self.node.handle_assign(expr)
         elif isinstance(self.node, ConditionalState):
             for case in self.node.body:
-                assert isinstance(case.then, State)
-                case.then.handle_assign(expr)
+                case.state.handle_assign(expr)
             self.node.orelse.handle_assign(expr)
 
     def handle_if(self, stmt: ast.If):
@@ -282,8 +284,7 @@ class State:
             )
         elif isinstance(self.node, ConditionalState):
             for case in self.node.body:
-                assert isinstance(case.then, State)
-                case.then.handle_if(stmt)
+                case.state.handle_if(stmt)
             self.node.orelse.handle_if(stmt)
 
     def handle_return(self, value: ast.expr):
@@ -293,25 +294,24 @@ class State:
             )
         elif isinstance(self.node, ConditionalState):
             for case in self.node.body:
-                assert isinstance(case.then, State)
-                case.then.handle_return(value)
+                case.state.handle_return(value)
             self.node.orelse.handle_return(value)
 
     def handle_match(self, stmt: ast.Match):
+        def is_catch_all(pattern: ast.pattern) -> bool:
+            return isinstance(pattern, ast.MatchAs) and pattern.name is None
+
         if isinstance(self.node, UnresolvedState):
+            # We can always rewrite catch-all patterns to orelse since python throws a SyntaxError if the catch-all pattern is not the last case.
             orelse = next(
-                iter(
-                    [
-                        case.body
-                        for case in stmt.cases
-                        if isinstance(case.pattern, ast.MatchAs) and case.pattern.name is None
-                    ]
-                ),
+                iter([case.body for case in stmt.cases if is_catch_all(case.pattern)]),
                 [],
             )
             self.node = ConditionalState(
                 body=[
                     UnresolvedCase(
+                        # tramslate_match transforms the match statement case into regular AST expressions so that the InlineTransformer can handle assignments correctly
+                        # Note that by the time parse_body is called this has mutated the assignments
                         InlineTransformer.inline_expr(
                             self.translate_match(stmt.subject, case.pattern, case.guard),
                             self.node.assignments,
@@ -319,7 +319,7 @@ class State:
                         parse_body(case.body, copy(self.node.assignments)),
                     )
                     for case in stmt.cases
-                    if not isinstance(case.pattern, ast.MatchAs) or case.pattern.name is not None
+                    if not is_catch_all(case.pattern)
                 ],
                 orelse=parse_body(
                     orelse,
@@ -328,8 +328,7 @@ class State:
             )
         elif isinstance(self.node, ConditionalState):
             for case in self.node.body:
-                assert isinstance(case.then, State)
-                case.then.handle_match(stmt)
+                case.state.handle_match(stmt)
             self.node.orelse.handle_match(stmt)
 
 
@@ -361,7 +360,7 @@ def transform_tree_into_expr(node: State) -> ast.expr:
     elif isinstance(node.node, ConditionalState):
         return build_polars_when_then_otherwise(
             [
-                ResolvedCase(case.test, transform_tree_into_expr(case.then))
+                ResolvedCase(case.test, transform_tree_into_expr(case.state))
                 for case in node.node.body
             ],
             transform_tree_into_expr(node.node.orelse),
