@@ -188,6 +188,62 @@ def multiple_match(x):
     return 5
 
 
+def match_with_assignment(x):
+    match x:
+        case y if x > 1:
+            y = y * 2
+            return y
+        case _:
+            return x
+
+
+def match_with_assignment_hard(x):
+    match x:
+        case y if x > 1:
+            y = y * 2
+        case _:
+            return x
+
+    return y + 2
+
+
+def match_complex_subject(x):
+    match x + 2:
+        case 3:
+            return 1
+        case _:
+            return x
+
+
+def match_guarded_match_as_no_return(x):
+    match x:
+        case 1:
+            return 0
+        case _ if x > 1:
+            return 2
+
+
+def match_guarded_match_as(x):
+    match x:
+        case 1:
+            return 0
+        case _ if x > 1:
+            return 2
+
+    return 3
+
+
+def match_sequence_padded_length(x):
+    y = 2
+    z = None
+
+    match x, y, z:
+        case 1, 2:
+            return 1
+        case _:
+            return -1
+
+
 functions_310 = [
     nested_match,
     match_assignments_inside_branch,
@@ -202,6 +258,11 @@ functions_310 = [
     match_with_guard_multiple_variable,
     match_sequence_incomplete,
     multiple_match,
+    match_with_assignment,
+    match_with_assignment_hard,
+    match_complex_subject,
+    match_guarded_match_as,
+    match_sequence_padded_length,
 ]
 
 xfail_functions_310 = [
@@ -212,4 +273,5 @@ unsupported_functions_310 = [
     (match_sequence_star, "starred patterns are not supported."),
     (match_sequence, "Matching lists is not supported."),
     (match_sequence_with_brackets, "Matching lists is not supported."),
+    (match_guarded_match_as_no_return, "return"),
 ]
