@@ -233,7 +233,7 @@ def match_guarded_match_as(x):
     return 3
 
 
-def match_sequence_padded_length(x):
+def match_sequence_padded_length_no_case(x):
     y = 2
     z = None
 
@@ -242,6 +242,38 @@ def match_sequence_padded_length(x):
             return 1
         case _:
             return -1
+
+
+def match_sequence_padded_length_return(x):
+    y = 1
+    z = 2
+
+    match x, y, z:
+        case 1, 2:
+            return 1
+    return -1
+
+
+def match_sequence_padded_length(x):
+    y = 1
+    z = 2
+
+    match x, y, z:
+        case 1, 2:
+            return 1
+        case 3, 4:
+            return -1
+        case 1, 2, 3:
+            return 2
+    return -2
+
+
+def match_guard_no_assignation(x):
+    match x:
+        case _ if x > 1:
+            return 0
+        case _:
+            return 2
 
 
 functions_310 = [
@@ -263,15 +295,18 @@ functions_310 = [
     match_complex_subject,
     match_guarded_match_as,
     match_sequence_padded_length,
+    match_guard_no_assignation,
 ]
 
 xfail_functions_310 = [
     match_mapping,
+    match_sequence_padded_length_no_case,
+    match_sequence_padded_length_return,
 ]
 
 unsupported_functions_310 = [
     (match_sequence_star, "starred patterns are not supported."),
     (match_sequence, "Matching lists is not supported."),
     (match_sequence_with_brackets, "Matching lists is not supported."),
-    (match_guarded_match_as_no_return, "return"),
+    (match_guarded_match_as_no_return, "Not all branches return"),
 ]

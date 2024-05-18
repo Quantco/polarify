@@ -49,7 +49,14 @@ class ResolvedCase:
 def build_polars_when_then_otherwise(body: Sequence[ResolvedCase], orelse: ast.expr) -> ast.Call:
     nodes: list[ast.Call] = []
 
-    assert body, "No when-then cases provided."
+    assert body or orelse, "No when-then cases provided."
+
+    if not body:
+        """
+        When a match statement has no valid cases (i.e., all cases except catch-all pattern are ignored),
+        we return the orelse expression but the test setup does not work with literal expressions.
+        """
+        raise ValueError("No valid cases provided.")
 
     for test, then in body:
         when_node = ast.Call(
@@ -195,9 +202,9 @@ class State:
         """
         TODO: Explain the purpose and goal of this method, it's quite complex
         """
-        if isinstance(pattern, ast.MatchValue) and isinstance(subj, ast.Name):
+        if isinstance(pattern, ast.MatchValue):
             equality_ast = ast.Compare(
-                left=ast.Name(id=subj.id, ctx=ast.Load()),
+                left=subj,
                 ops=[ast.Eq()],
                 comparators=[pattern.value],
             )
@@ -210,14 +217,12 @@ class State:
                 )
 
             return equality_ast
-        elif isinstance(pattern, ast.MatchValue) and isinstance(subj, ast.Tuple):
-            return self.translate_match(subj, ast.MatchSequence(patterns=[pattern]))
-        elif isinstance(pattern, ast.MatchAs) and isinstance(subj, ast.Name):
+        elif isinstance(pattern, ast.MatchAs):
             if pattern.name is not None:
                 self.handle_assign(
                     ast.Assign(
                         targets=[ast.Name(id=pattern.name, ctx=ast.Store())],
-                        value=ast.Name(id=subj.id, ctx=ast.Load()),
+                        value=subj,
                     )
                 )
             return guard
@@ -234,10 +239,8 @@ class State:
         elif isinstance(pattern, ast.MatchSequence):
             if isinstance(pattern.patterns[-1], ast.MatchStar):
                 raise ValueError("starred patterns are not supported.")
-            if isinstance(subj, ast.Tuple):
-                while len(subj.elts) > len(pattern.patterns):
-                    pattern.patterns.append(ast.MatchValue(value=ast.Constant(value=None)))
 
+            if isinstance(subj, ast.Tuple):
                 # TODO: Use polars list operations in the future
                 left = self.translate_match(subj.elts[0], pattern.patterns[0], guard)
                 right = (
@@ -298,13 +301,27 @@ class State:
             self.node.orelse.handle_return(value)
 
     def handle_match(self, stmt: ast.Match):
-        def is_catch_all(pattern: ast.pattern) -> bool:
-            return isinstance(pattern, ast.MatchAs) and pattern.name is None
+        def is_catch_all(case: ast.match_case) -> bool:
+            # We check if the case is a catch-all pattern without a guard
+            # If it has a guard, we treat it as a regular case
+            return (
+                isinstance(case.pattern, ast.MatchAs)
+                and case.pattern.name is None
+                and case.guard is None
+            )
+
+        def ignore_case(case: ast.match_case) -> bool:
+            # if the length of the pattern is not equal to the length of the subject, python ignores the case
+            return (
+                isinstance(case.pattern, ast.MatchSequence)
+                and isinstance(stmt.subject, ast.Tuple)
+                and len(stmt.subject.elts) != len(case.pattern.patterns)
+            ) or (isinstance(case.pattern, ast.MatchValue) and isinstance(stmt.subject, ast.Tuple))
 
         if isinstance(self.node, UnresolvedState):
             # We can always rewrite catch-all patterns to orelse since python throws a SyntaxError if the catch-all pattern is not the last case.
             orelse = next(
-                iter([case.body for case in stmt.cases if is_catch_all(case.pattern)]),
+                iter([case.body for case in stmt.cases if is_catch_all(case)]),
                 [],
             )
             self.node = ConditionalState(
@@ -319,7 +336,7 @@ class State:
                         parse_body(case.body, copy(self.node.assignments)),
                     )
                     for case in stmt.cases
-                    if not is_catch_all(case.pattern)
+                    if not is_catch_all(case) and not ignore_case(case)
                 ],
                 orelse=parse_body(
                     orelse,
