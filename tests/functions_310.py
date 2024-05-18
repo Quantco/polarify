@@ -171,7 +171,7 @@ def match_mapping(x):
         case {1: 2}:
             return 1
         case _:
-            return 2
+            return x
 
 
 def multiple_match(x):
@@ -185,7 +185,7 @@ def multiple_match(x):
             return 3
         case 1:
             return 4
-    return 5
+    return x
 
 
 def match_with_assignment(x):
@@ -265,7 +265,7 @@ def match_sequence_padded_length(x):
             return -1
         case 1, 2, 3:
             return 2
-    return -2
+    return x
 
 
 def match_guard_no_assignation(x):
