@@ -320,7 +320,7 @@ class State:
             self.node = ConditionalState(
                 body=[
                     UnresolvedCase(
-                        # tramslate_match transforms the match statement case into regular AST expressions so that the InlineTransformer can handle assignments correctly
+                        # translate_match transforms the match statement case into regular AST expressions so that the InlineTransformer can handle assignments correctly
                         # Note that by the time parse_body is called this has mutated the assignments
                         InlineTransformer.inline_expr(
                             self.translate_match(stmt.subject, case.pattern, case.guard),
