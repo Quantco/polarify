@@ -3,11 +3,10 @@
 import sys
 
 if sys.version_info >= (3, 10):
-    from .functions_310 import functions_310, unsupported_functions_310, xfail_functions_310
+    from .functions_310 import functions_310, unsupported_functions_310
 else:
     functions_310 = []
     unsupported_functions_310 = []
-    xfail_functions_310 = []
 
 
 def signum(x):
@@ -317,7 +316,6 @@ xfail_functions = [
     different_type_assignments,
     star_assignments,
     global_variable,
-    *xfail_functions_310,
 ]
 
 unsupported_functions = [

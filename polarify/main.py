@@ -51,13 +51,6 @@ def build_polars_when_then_otherwise(body: Sequence[ResolvedCase], orelse: ast.e
 
     assert body or orelse, "No when-then cases provided."
 
-    if not body:
-        """
-        When a match statement has no valid cases (i.e., all cases except catch-all pattern are ignored),
-        we return the orelse expression but the test setup does not work with literal expressions.
-        """
-        raise ValueError("No valid cases provided.")
-
     for test, then in body:
         when_node = ast.Call(
             func=ast.Attribute(
@@ -375,6 +368,10 @@ def transform_tree_into_expr(node: State) -> ast.expr:
     if isinstance(node.node, ReturnState):
         return node.node.expr
     elif isinstance(node.node, ConditionalState):
+        if not node.node.body:
+            # this happens if none of the cases will ever match or exist
+            # in these cases we just need to return the orelse body
+            return transform_tree_into_expr(node.node.orelse)
         return build_polars_when_then_otherwise(
             [
                 ResolvedCase(case.test, transform_tree_into_expr(case.state))

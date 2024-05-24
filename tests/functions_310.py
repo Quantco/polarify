@@ -233,7 +233,7 @@ def match_guarded_match_as(x):
     return 3
 
 
-def match_sequence_padded_length_no_case(x):
+def match_sequence_unmatchable_case_smaller(x):
     y = 2
     z = None
 
@@ -241,20 +241,32 @@ def match_sequence_padded_length_no_case(x):
         case 1, 2:
             return 1
         case _:
-            return -1
+            return x
 
 
-def match_sequence_padded_length_return(x):
+def match_sequence_unmatchable_case_larger(x):
+    y = 2
+    z = None
+
+    match x, y:
+        case 1, 2, 3:
+            return 1
+        case _:
+            return x * 2
+
+
+def match_sequence_unmatchable_case_smaller_return(x):
     y = 1
     z = 2
 
     match x, y, z:
         case 1, 2:
+            x = 4
             return 1
-    return -1
+    return x
 
 
-def match_sequence_padded_length(x):
+def match_sequence_unmatchable_case(x):
     y = 1
     z = 2
 
@@ -294,17 +306,15 @@ functions_310 = [
     match_with_assignment_hard,
     match_complex_subject,
     match_guarded_match_as,
-    match_sequence_padded_length,
     match_guard_no_assignation,
-]
-
-xfail_functions_310 = [
-    match_mapping,
-    match_sequence_padded_length_no_case,
-    match_sequence_padded_length_return,
+    match_sequence_unmatchable_case,
+    match_sequence_unmatchable_case_smaller,
+    match_sequence_unmatchable_case_smaller_return,
+    match_sequence_unmatchable_case_larger,
 ]
 
 unsupported_functions_310 = [
+    (match_mapping, "ast.MatchMapping"),
     (match_sequence_star, "starred patterns are not supported."),
     (match_sequence, "Matching lists is not supported."),
     (match_sequence_with_brackets, "Matching lists is not supported."),
