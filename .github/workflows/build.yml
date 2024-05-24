@@ -35,7 +35,7 @@ jobs:
 
   release:
     name: Publish package
-    if: github.event_name == 'push' && github.ref_name == 'main' && needs.build.outputs.version-changed == 'true'
+    if: github.event_name == 'push' && github.repository == 'Quantco/polarify' && github.ref_name == 'main' && needs.build.outputs.version-changed == 'true'
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
