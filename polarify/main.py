@@ -193,8 +193,13 @@ class State:
         guard: ast.expr | None = None,
     ):
         """
-        TODO: Explain the purpose and goal of this method, it's quite complex
+        Translate a match_case statement into a regular AST expression.
+        translate_match takes a subject, a pattern and a guard.
+        patterns can be a MatchValue, MatchAs, MatchOr, or MatchSequence.
+        subjects can be a single expression (e.g x or (2 * x + 1)) or a list of expressions.
+        translate_match is called per each case in a match statement.
         """
+
         if isinstance(pattern, ast.MatchValue):
             equality_ast = ast.Compare(
                 left=subj,
