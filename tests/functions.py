@@ -1,5 +1,12 @@
 # ruff: noqa
 # ruff must not change the AST of the test functions, even if they are semantically equivalent.
+import sys
+
+if sys.version_info >= (3, 10):
+    from .functions_310 import functions_310, unsupported_functions_310
+else:
+    functions_310 = []
+    unsupported_functions_310 = []
 
 
 def signum(x):
@@ -254,6 +261,22 @@ def list_assignments(x):
     return x + a + b
 
 
+def different_type_assignments(x):
+    [a, b] = {1, 2}
+    return x
+
+
+def star_assignments(x):
+    b, *a = [1, 2]
+    return x
+
+
+def global_variable(x):
+    global a
+    a = 1
+    return x + a
+
+
 functions = [
     signum,
     early_return,
@@ -281,6 +304,7 @@ functions = [
     multiple_if,
     return_unconditional_constant,
     return_conditional_constant,
+    *functions_310,
 ]
 
 xfail_functions = [
@@ -289,6 +313,9 @@ xfail_functions = [
     return_constant,
     return_constant_2,
     return_constant_additional_assignments,
+    different_type_assignments,
+    star_assignments,
+    global_variable,
 ]
 
 unsupported_functions = [
@@ -298,4 +325,5 @@ unsupported_functions = [
     (return_end, "return needs a value"),
     (no_return, "Not all branches return"),
     (return_nothing, "return needs a value"),
+    *unsupported_functions_310,
 ]
