@@ -43,7 +43,7 @@ jobs:
           report-title: ${{ matrix.env }}
       - name: Upload coverage reports to Codecov
         if: matrix.env == 'py312'
-        uses: codecov/codecov-action@125fc84a9a348dbcf27191600683ec096ec9021c
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
