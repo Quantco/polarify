@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "polars >=0.14.24,<0.21",
+    "polars >=0.14.24,<2",
 ]
 
 [project.urls]

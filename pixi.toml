@@ -9,7 +9,7 @@ platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
 [dependencies]
 python = ">=3.9"
-polars = ">=0.14.24,<0.21"
+polars = ">=0.14.24,<2"
 
 [tasks]
 postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
@@ -36,6 +36,8 @@ polars = "0.18.*"
 polars = "0.19.*"
 [feature.pl020.dependencies]
 polars = "0.20.*"
+[feature.pl1.dependencies]
+polars = "1.*"
 
 [host-dependencies]
 python = "*"
@@ -66,6 +68,7 @@ pl017 = ["pl017", "py310", "test"]
 pl018 = ["pl018", "py310", "test"]
 pl019 = ["pl019", "py310", "test"]
 pl020 = ["pl020", "py310", "test"]
+pl1 = ["pl1", "py310", "test"]
 py39 = ["py39", "test"]
 py310 = ["py310", "test"]
 py311 = ["py311", "test"]
