@@ -36,8 +36,10 @@ polars = "0.18.*"
 polars = "0.19.*"
 [feature.pl020.dependencies]
 polars = "0.20.*"
-[feature.pl1.dependencies]
-polars = "1.*"
+[feature.pl10.dependencies]
+polars = "1.0.*"
+[feature.pl11.dependencies]
+polars = "1.1.*"
 
 [host-dependencies]
 python = "*"
@@ -68,7 +70,8 @@ pl017 = ["pl017", "py310", "test"]
 pl018 = ["pl018", "py310", "test"]
 pl019 = ["pl019", "py310", "test"]
 pl020 = ["pl020", "py310", "test"]
-pl1 = ["pl1", "py310", "test"]
+pl10 = ["pl10", "py310", "test"]
+pl11 = ["pl11", "py310", "test"]
 py39 = ["py39", "test"]
 py310 = ["py310", "test"]
 py311 = ["py311", "test"]
