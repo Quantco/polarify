@@ -48,18 +48,18 @@ jobs:
           name: artifact
           path: dist
       - name: Publish package on TestPyPi
-        uses: pypa/gh-action-pypi-publish@8a08d616893759ef8e1aa1f2785787c0b97e20d6
+        uses: pypa/gh-action-pypi-publish@fb13cb306901256ace3dab689990e13a5550ffaa
         with:
           repository-url: https://test.pypi.org/legacy/
       - name: Publish package on PyPi
-        uses: pypa/gh-action-pypi-publish@8a08d616893759ef8e1aa1f2785787c0b97e20d6
+        uses: pypa/gh-action-pypi-publish@fb13cb306901256ace3dab689990e13a5550ffaa
       - uses: actions/checkout@v4
       - name: Push v${{ needs.build.outputs.new-version }} tag
         run: |
           git tag v${{ needs.build.outputs.new-version }}
           git push origin v${{ needs.build.outputs.new-version }}
       - name: Create release
-        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191
+        uses: softprops/action-gh-release@e7a8f85e1c67a31e6ed99a94b41bd0b71bbee6b8
         with:
           generate_release_notes: true
           tag_name: v${{ needs.build.outputs.new-version }}
