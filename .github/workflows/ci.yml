@@ -34,6 +34,7 @@ jobs:
         with:
           environments: ${{ matrix.env }}
           pixi-url: https://github.com/pavelzw/temp-pixi/raw/refs/heads/main/pixi-x86_64-unknown-linux-musl-0.38.0-3-g32900a04
+          locked: false
       - name: Install repository
         run: |
           pixi run -e ${{ matrix.env }} postinstall

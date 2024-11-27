@@ -17,8 +17,8 @@ polarify = { path = "." }
 [build-system]
 build-backend = "pixi-build-python"
 channels = [
-  "https://prefix.dev/pixi-build-backends",
-  "https://prefix.dev/conda-forge",
+  "https://repo.prefix.dev/pixi-build-backends",
+  "https://repo.prefix.dev/conda-forge",
 ]
 dependencies = ["pixi-build-python"]
 
