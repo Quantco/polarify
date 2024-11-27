@@ -6,41 +6,52 @@ description = "Simplifying conditional Polars Expressions with Python 🐍 🐻�
 authors = ["Bela Stoyan <bela.stoyan@quantco.com>", "Pavel Zwerschke <pavel.zwerschke@quantco.com>"]
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
+preview = ["pixi-build"]
 
 [dependencies]
 python = ">=3.9"
 polars = ">=0.14.24,<0.21"
+pixi-pycharm = "*"
+polarify = { path = "." }
 
-[tasks]
-postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
+[build-system]
+build-backend = "pixi-build-python"
+channels = [
+  "https://prefix.dev/pixi-build-backends",
+  "https://prefix.dev/conda-forge",
+]
+dependencies = ["pixi-build-python"]
 
-[feature.py39.dependencies]
-python = "3.9.*"
-[feature.py310.dependencies]
-python = "3.10.*"
-[feature.py311.dependencies]
-python = "3.11.*"
-[feature.py312.dependencies]
-python = "3.12.*"
-[feature.pl014.dependencies]
-polars = "0.14.*"
-[feature.pl015.dependencies]
-polars = "0.15.*"
-[feature.pl016.dependencies]
-polars = "0.16.*"
-[feature.pl017.dependencies]
-polars = "0.17.*"
-[feature.pl018.dependencies]
-polars = "0.18.*"
-[feature.pl019.dependencies]
-polars = "0.19.*"
-[feature.pl020.dependencies]
-polars = "0.20.*"
+[package]
+version = "0.1.4"
 
 [host-dependencies]
-python = "*"
+python = "3.9.*"
 pip = "*"
 hatchling = "*"
+
+# [feature.py39.dependencies]
+# python = "3.9.*"
+# [feature.py310.dependencies]
+# python = "3.10.*"
+# [feature.py311.dependencies]
+# python = "3.11.*"
+[feature.py312.dependencies]
+python = "3.12.*"
+# [feature.pl014.dependencies]
+# polars = "0.14.*"
+# [feature.pl015.dependencies]
+# polars = "0.15.*"
+# [feature.pl016.dependencies]
+# polars = "0.16.*"
+# [feature.pl017.dependencies]
+# polars = "0.17.*"
+# [feature.pl018.dependencies]
+# polars = "0.18.*"
+# [feature.pl019.dependencies]
+# polars = "0.19.*"
+# [feature.pl020.dependencies]
+# polars = "0.20.*"
 
 [feature.test.dependencies]
 pytest = "*"
@@ -59,15 +70,15 @@ lint = "pre-commit run --all"
 
 [environments]
 default = ["test"]
-pl014 = ["pl014", "py310", "test"]
-pl015 = ["pl015", "py310", "test"]
-pl016 = ["pl016", "py310", "test"]
-pl017 = ["pl017", "py310", "test"]
-pl018 = ["pl018", "py310", "test"]
-pl019 = ["pl019", "py310", "test"]
-pl020 = ["pl020", "py310", "test"]
-py39 = ["py39", "test"]
-py310 = ["py310", "test"]
-py311 = ["py311", "test"]
+# pl014 = ["pl014", "py310", "test"]
+# pl015 = ["pl015", "py310", "test"]
+# pl016 = ["pl016", "py310", "test"]
+# pl017 = ["pl017", "py310", "test"]
+# pl018 = ["pl018", "py310", "test"]
+# pl019 = ["pl019", "py310", "test"]
+# pl020 = ["pl020", "py310", "test"]
+# py39 = ["py39", "test"]
+# py310 = ["py310", "test"]
+# py311 = ["py311", "test"]
 py312 = ["py312", "test"]
 lint = ["lint"]

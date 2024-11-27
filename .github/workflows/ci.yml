@@ -17,22 +17,23 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - pl014
-          - pl015
-          - pl016
-          - pl017
-          - pl018
-          - pl019
-          - pl020
-          - py39
-          - py310
-          - py311
+          # - pl014
+          # - pl015
+          # - pl016
+          # - pl017
+          # - pl018
+          # - pl019
+          # - pl020
+          # - py39
+          # - py310
+          # - py311
           - py312
     steps:
       - uses: actions/checkout@v4
       - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659
         with:
           environments: ${{ matrix.env }}
+          pixi-url: https://github.com/pavelzw/temp-pixi/raw/refs/heads/main/pixi-x86_64-unknown-linux-musl-0.38.0-3-g32900a04
       - name: Install repository
         run: |
           pixi run -e ${{ matrix.env }} postinstall
