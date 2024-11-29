@@ -22,13 +22,21 @@ channels = [
 dependencies = ["pixi-build-python"]
 
 [package]
-version = "0.1.4"
+version = "0.2.0"
 
 [host-dependencies]
 python = "3.9.*"
 pip = "*"
 hatchling = "*"
 
+[feature.py39.dependencies]
+python = "3.9.*"
+[feature.py310.dependencies]
+python = "3.10.*"
+[feature.py311.dependencies]
+python = "3.11.*"
+[feature.py312.dependencies]
+python = "3.12.*"
 [feature.pl014.dependencies]
 polars = "0.14.*"
 [feature.pl015.dependencies]
@@ -43,14 +51,6 @@ polars = "0.18.*"
 polars = "0.19.*"
 [feature.pl020.dependencies]
 polars = "0.20.*"
-[feature.py39.dependencies]
-python = "3.9.*"
-[feature.py310.dependencies]
-python = "3.10.*"
-[feature.py311.dependencies]
-python = "3.11.*"
-[feature.py312.dependencies]
-python = "3.12.*"
 
 [feature.test.dependencies]
 pytest = "*"
@@ -69,13 +69,13 @@ lint = "pre-commit run --all"
 
 [environments]
 default = ["test"]
-pl014 = ["pl014", "test"]
-pl015 = ["pl015", "test"]
-pl016 = ["pl016", "test"]
-pl017 = ["pl017", "test"]
-pl018 = ["pl018", "test"]
-pl019 = ["pl019", "test"]
-pl020 = ["pl020", "test"]
+pl014 = ["pl014", "py310", "test"]
+pl015 = ["pl015", "py310", "test"]
+pl016 = ["pl016", "py310", "test"]
+pl017 = ["pl017", "py310", "test"]
+pl018 = ["pl018", "py310", "test"]
+pl019 = ["pl019", "py310", "test"]
+pl020 = ["pl020", "py310", "test"]
 py39 = ["py39", "test"]
 py310 = ["py310", "test"]
 py311 = ["py311", "test"]
