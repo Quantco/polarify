@@ -4794,9 +4794,11 @@ packages:
   build: pyhbf21a9e_0
   subdir: noarch
   depends:
+  - polars >=0.14.24,<0.21
+  - python >=3.9
   - python
   input:
-    hash: 02010e705330c2b3d41e303e4168b146b2c5b60a49cae236834d762a2874b384
+    hash: d5895323a5bae2295205927a4a5b45685fae24d0470d68a069a895e5f5813e5a
     globs:
     - pixi.toml
 - conda: https://conda.anaconda.org/conda-forge/linux-64/polars-0.14.31-py310h3392aa1_0.conda
