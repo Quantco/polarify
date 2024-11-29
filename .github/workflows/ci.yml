@@ -21,12 +21,12 @@ jobs:
           # - pl015
           # - pl016
           # - pl017
-          # - pl018
+          - pl018
           # - pl019
           # - pl020
-          # - py39
-          # - py310
-          # - py311
+          - py39
+          - py310
+          - py311
           - py312
     steps:
       - uses: actions/checkout@v4

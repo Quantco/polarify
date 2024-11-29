@@ -29,6 +29,14 @@ python = "3.9.*"
 pip = "*"
 hatchling = "*"
 
+[feature.pl018.dependencies]
+polars = "0.18.*"
+[feature.py39.dependencies]
+python = "3.9.*"
+[feature.py310.dependencies]
+python = "3.10.*"
+[feature.py311.dependencies]
+python = "3.11.*"
 [feature.py312.dependencies]
 python = "3.12.*"
 
@@ -49,5 +57,9 @@ lint = "pre-commit run --all"
 
 [environments]
 default = ["test"]
+pl018 = ["pl018", "test"]
+py39 = ["py39", "test"]
+py310 = ["py310", "test"]
+py311 = ["py311", "test"]
 py312 = ["py312", "test"]
 lint = ["lint"]
