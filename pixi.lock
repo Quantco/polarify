@@ -4790,13 +4790,13 @@ packages:
   timestamp: 1713667175451
 - conda: .
   name: polarify
-  version: 0.1.0
+  version: 0.2.0
   build: pyhbf21a9e_0
   subdir: noarch
   depends:
   - python
   input:
-    hash: 4f79b562092ea284f5aee2a320868102e5a32984839c350c8f78170339fe2516
+    hash: 02010e705330c2b3d41e303e4168b146b2c5b60a49cae236834d762a2874b384
     globs:
     - pixi.toml
 - conda: https://conda.anaconda.org/conda-forge/linux-64/polars-0.14.31-py310h3392aa1_0.conda
