@@ -17,13 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          # - pl014
-          # - pl015
-          # - pl016
-          # - pl017
+          - pl014
+          - pl015
+          - pl016
+          - pl017
           - pl018
-          # - pl019
-          # - pl020
+          - pl019
+          - pl020
           - py39
           - py310
           - py311
