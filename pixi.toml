@@ -2,7 +2,6 @@
 # https://github.com/prefix-dev/pixi/issues/79
 [project]
 name = "polarify"
-version = "0.2.0"
 description = "Simplifying conditional Polars Expressions with Python 🐍 🐻‍❄️"
 authors = ["Bela Stoyan <bela.stoyan@quantco.com>", "Pavel Zwerschke <pavel.zwerschke@quantco.com>"]
 channels = ["conda-forge"]
