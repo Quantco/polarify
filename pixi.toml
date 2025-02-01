@@ -6,13 +6,30 @@ description = "Simplifying conditional Polars Expressions with Python 🐍 🐻�
 authors = ["Bela Stoyan <bela.stoyan@quantco.com>", "Pavel Zwerschke <pavel.zwerschke@quantco.com>"]
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
+preview = ["pixi-build"]
 
 [dependencies]
-python = ">=3.9"
-polars = ">=0.14.24,<0.21"
+polarify = { path = "." }
 
-[tasks]
-postinstall = "pip install --no-build-isolation --no-deps --disable-pip-version-check -e ."
+[build-system]
+build-backend = "pixi-build-python"
+channels = [
+  "https://repo.prefix.dev/pixi-build-backends",
+  "https://repo.prefix.dev/conda-forge",
+]
+dependencies = ["pixi-build-python"]
+
+[package]
+version = "0.2.0"
+
+[host-dependencies]
+python = "3.9.*"
+pip = "*"
+hatchling = "*"
+
+[run-dependencies]
+polars = ">=0.14.24,<0.21"
+python = ">=3.9"
 
 [feature.py39.dependencies]
 python = "3.9.*"
@@ -36,11 +53,6 @@ polars = "0.18.*"
 polars = "0.19.*"
 [feature.pl020.dependencies]
 polars = "0.20.*"
-
-[host-dependencies]
-python = "*"
-pip = "*"
-hatchling = "*"
 
 [feature.test.dependencies]
 pytest = "*"
