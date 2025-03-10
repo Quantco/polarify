@@ -219,6 +219,5 @@ TODO: Add some benchmarks
 
 ```bash
 pixi install
-pixi run postinstall
 pixi run test
 ```
