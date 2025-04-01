@@ -30,7 +30,7 @@ jobs:
           - py312
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d
+      - uses: prefix-dev/setup-pixi@8eaba7c61d661f73d558b0b477156b7b62667fa4
         with:
           environments: ${{ matrix.env }}
       - name: Install repository
