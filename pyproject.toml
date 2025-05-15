@@ -5,32 +5,29 @@ build-backend = "hatchling.build"
 [project]
 name = "polarify"
 description = "Simplifying conditional Polars Expressions with Python 🐍 🐻‍❄️"
-version = "0.2.0"
+version = "0.2.1"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 requires-python = ">=3.9"
 authors = [
-    { name = "Bela Stoyan", email = "bela.stoyan@quantco.com" },
-    { name = "Pavel Zwerschke", email = "pavel.zwerschke@quantco.com" },
+  { name = "Bela Stoyan", email = "bela.stoyan@quantco.com" },
+  { name = "Pavel Zwerschke", email = "pavel.zwerschke@quantco.com" },
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
-dependencies = [
-    "polars >=0.14.24,<0.21",
-]
+dependencies = ["polars >=0.14.24,<2"]
 
 [project.urls]
 Homepage = "https://github.com/quantco/polarify"
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "/polarify",
-]
+include = ["/polarify"]
 
 [tool.ruff]
 line-length = 100
@@ -38,35 +35,36 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = [
-    # pyflakes
-    "F",
-    # pycodestyle
-    "E", "W",
-    # flake8-builtins
-    "A",
-    # flake8-bugbear
-    "B",
-    # flake8-comprehensions
-    "C4",
-    # flake8-simplify
-    "SIM",
-    # flake8-unused-arguments
-    "ARG",
-    # pylint
-    "PL",
-    # tidy
-    "TID",
-    # isort
-    "I",
-    # pep8-naming
-    "N",
-    # pyupgrade
-    "UP"
+  # pyflakes
+  "F",
+  # pycodestyle
+  "E",
+  "W",
+  # flake8-builtins
+  "A",
+  # flake8-bugbear
+  "B",
+  # flake8-comprehensions
+  "C4",
+  # flake8-simplify
+  "SIM",
+  # flake8-unused-arguments
+  "ARG",
+  # pylint
+  "PL",
+  # tidy
+  "TID",
+  # isort
+  "I",
+  # pep8-naming
+  "N",
+  # pyupgrade
+  "UP",
 ]
 ignore = [
-    # may cause conflicts with ruff formatter
-    "E501",
-    "W191"
+  # may cause conflicts with ruff formatter
+  "E501",
+  "W191",
 ]
 
 [tool.ruff.format]

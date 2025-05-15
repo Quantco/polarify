@@ -57,3 +57,5 @@ def test_transform_function(df: polars.DataFrame, funcs):
         df_with_applied_func,
         check_dtype=False,
     )
+
+    assert False

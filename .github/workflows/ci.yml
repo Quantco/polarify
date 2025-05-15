@@ -18,16 +18,12 @@ jobs:
       matrix:
         env:
           - pl014
-          - pl015
-          - pl016
-          - pl017
-          - pl018
-          - pl019
-          - pl020
+          - pl1
           - py39
           - py310
           - py311
           - py312
+          - py313
     steps:
       - uses: actions/checkout@v4
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d
