@@ -53,7 +53,7 @@ pre-commit = "*"
 lint = "pre-commit run --all"
 
 [environments]
-default = ["test"]
+default = ["test", "py313", "pl1"]
 pl014 = ["pl014", "py310", "test"]
 pl1 = ["pl1", "py310", "test"]
 py39 = ["py39", "test"]
