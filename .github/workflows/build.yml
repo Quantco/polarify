@@ -13,7 +13,7 @@ jobs:
       version-changed: ${{ steps.version-metadata.outputs.changed }}
       new-version: ${{ steps.version-metadata.outputs.newVersion }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
@@ -43,19 +43,19 @@ jobs:
       contents: write
     environment: pypi
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: artifact
           path: dist
       - name: Publish package on PyPi
         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Push v${{ needs.build.outputs.new-version }} tag
         run: |
           git tag v${{ needs.build.outputs.new-version }}
           git push origin v${{ needs.build.outputs.new-version }}
       - name: Create release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
         with:
           generate_release_notes: true
           tag_name: v${{ needs.build.outputs.new-version }}
