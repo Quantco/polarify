@@ -25,7 +25,7 @@ jobs:
           - py312
           - py313
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - uses: prefix-dev/setup-pixi@92815284c57faa15cd896c4d5cfb2d59f32dc43d
         with:
           environments: ${{ matrix.env }}
@@ -51,16 +51,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Run pre-commit
-        uses: quantco/pre-commit-conda@v1
+        uses: quantco/pre-commit-conda@87cdb18304b3743b2304b03ccfd172284ccabbc3 # v1.0.2
 
   lint-workflow-files:
     name: Lint workflow files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       # https://github.com/rhysd/actionlint/blob/main/docs/usage.md#use-actionlint-on-github-actions
       - name: Download actionlint
         id: get_actionlint
