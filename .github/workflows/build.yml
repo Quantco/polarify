@@ -22,7 +22,7 @@ jobs:
       - name: Build project
         run: python -m build
       - name: Upload package
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact
           path: dist/*
@@ -48,14 +48,14 @@ jobs:
           name: artifact
           path: dist
       - name: Publish package on PyPi
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Push v${{ needs.build.outputs.new-version }} tag
         run: |
           git tag v${{ needs.build.outputs.new-version }}
           git push origin v${{ needs.build.outputs.new-version }}
       - name: Create release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         with:
           generate_release_notes: true
           tag_name: v${{ needs.build.outputs.new-version }}
